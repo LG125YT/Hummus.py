@@ -11,7 +11,9 @@ class Message:
         self.channel = data['channel_id']
         self.guild = data['guild_id']
         self.id = data['id']
-        self.mentions = data['mentions']
+        self.mentions = []
+        for mention in data['mentions']:
+          self.mentions.append(Author(mention,cdn))
         self.attachments = data['attachments']
         self.embeds = data['embeds']
         self.edited_timestamp = data['edited_timestamp']
