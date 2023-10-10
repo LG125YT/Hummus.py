@@ -41,7 +41,7 @@ As you can see, the above code fetches a member based on the first mention that 
 I am LG125YT#2241 on Hummus, @ytlg on Discord, and @lg125yt on Replit.
 
 ## Roadmap
-Currently attempting to add all endpoints from the [Hummus API docs]() beginning with most important for bot development.
+Currently attempting to add all endpoints from the [Hummus API docs](https://hummus.sys42.net/developers/docs/intro) beginning with most important for bot development.
 
 ## Contributing
 Contribute if you want, you can make a pull request here, comment on the [Replit project](https://replit.com/@LG125YT/Classes-or-something-ig#main.py)
