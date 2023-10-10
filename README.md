@@ -29,7 +29,7 @@ Currently there is little to no functions on Hummus.py. For now, you can use a g
       print(len(ctx.mentions))
       print(ctx.mentions)
       if len(ctx.mentions) > 0:
-        member = ctx.getUser(ctx.mentions[0])
+        member = ctx.getUser(ctx.mentions[0].id)
         ctx.reply(member.avatar.url)
       else:
         ctx.reply(ctx.author.avatar.url)
