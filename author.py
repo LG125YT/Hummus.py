@@ -6,6 +6,7 @@ class Avatar:
 
 class Author:
   def __init__(self,data,cdn):
+    print(data)
     self.id = data['id']
     self.username = data['username']
     self.discriminator = data['discriminator']

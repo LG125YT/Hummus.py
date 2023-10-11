@@ -1,6 +1,8 @@
 from .author import Author
+from .guild import Guild
 import requests
 import json
+import asyncio
 
 class Message:
     def __init__(self,data,token,agent,base_url,cdn):
@@ -41,5 +43,19 @@ class Message:
         'Content-Type': 'application/json',
         'User-Agent': self.agent
         }
-      e = requests.get(url=f"{self.base_url}/users/{id}/",headers=headers)
-      return Author(e.json(),self.cdn)
+      e = requests.get(url=f"{self.base_url}users/{id}/",headers=headers)
+      try:
+        author = Author(e.json(),self.cdn)
+        return author
+      except Exception:
+        if e.json()['code'] == 10001:
+          pass
+
+    def getGuild(self,guild):
+      headers = {
+        'Authorization': f'Bot {self.token}',
+        'Content-Type': 'application/json',
+        'User-Agent': self.agent
+        }
+      e = requests.get(url=f"{self.base_url}guilds/{guild}",headers=headers)
+      guild = Guild(e.json(),self.cdn)
