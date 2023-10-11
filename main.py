@@ -16,7 +16,7 @@ token = ""
 base_url = ""
 
 class Client:
-    def __init__(self, prefix,bottoken,status=None,game=None,url=None,websocket=None,cdn=None,events=None):
+    def __init__(self, prefix,bottoken,status=None,game=None,url=None,websocket=None,cdn=None,events:Events=None):
       if url == None:
         url = "https://hummus.sys42.net/api/v6/"
       if status == None:
@@ -27,6 +27,7 @@ class Client:
         cdn = "https://hummus-cdn.sys42.net/"
       if events == None:
         events = Events()
+      self.websocket = websocket
       self.prefix = prefix
       self.token = bottoken
       token = bottoken
@@ -34,18 +35,21 @@ class Client:
       self.base_url = url
       base_url = url
       self.cdn = cdn
+      self.events = events
+      self.status = status
+      
+    async def run(self):
       reconnect = False
       session = ""
       seq = ""
-      self.events = events
       while True:
-          with connect(websocket,user_agent_header=ua.random) as websocket:
+          with connect(self.websocket,user_agent_header=ua.random) as websocket:
             print("restarting...")
-            websocket.send(json.dumps({'op': 2,'d': {'token': token,'presence': {'status': status,'game': {"name":game,"type":1}}}}))
+            websocket.send(json.dumps({'op': 2,'d': {'token':self.token,'presence': {'status': self.status,'game': {"name":self.game,"type":1}}}}))
             if reconnect:
               event = json.loads(websocket.recv())
               if event['t'] == "READY":
-                websocket.send(json.dumps({"token":token,"session_id":session,"seq":seq,"op":6}))
+                websocket.send(json.dumps({"token":self.token,"session_id":session,"seq":seq,"op":6}))
             
             while True:
               event = json.loads(websocket.recv())
@@ -58,14 +62,14 @@ class Client:
               if event['op'] == 1:
                 websocket.send(json.dumps({"op":1}))
               if event['t'] == "MESSAGE_CREATE":
-                self.events.on_message_create(Message(event['d'],token,agent,base_url,cdn))
+                await self.events.on_message_create(Message(event['d'],self.token,agent,self.base_url,self.cdn))
                 if event['d']['content'].startswith("!"):
                   try:
-                    message = Message(event['d'],token,agent,base_url,cdn)
+                    message = Message(event['d'],self.token,agent,self.base_url,self.cdn)
                     func = message.content.replace(self.prefix,"")
                     args = func.split(" ")
                     thing = getattr(self, args[0])
                     if callable(thing) and not "__" in args[0]:
-                      thing(message)
+                      await thing(message)
                   except AttributeError:
                     print(f"Command '{args[0]}' not found as a command.")

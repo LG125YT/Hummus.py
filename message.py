@@ -11,7 +11,10 @@ class Message:
         self.base_url = base_url
         self.content = data['content']
         self.channel = data['channel_id']
-        self.guild = data['guild_id']
+        self.guild = data.get("guild_id")
+        self.dm = False
+        if self.guild == None:
+          self.dm = True
         self.id = data['id']
         self.mentions = []
         for mention in data['mentions']:

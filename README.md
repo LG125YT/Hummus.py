@@ -1,6 +1,6 @@
 # Hummus.py
 
-This wrapper is currently in version 0.0.4!
+This is an asynchronous wrapper currently in version 0.0.5!
 
 ## Getting started
 
@@ -8,14 +8,17 @@ Download these files and put them in a folder named "hummus". Next to the hummus
 ```py
 import hummus
 from hummus.main import Client
+import asyncio
 
 class Commands(Client):
-    def test(self,ctx:hummus.message.Message):
+    async def test(self,ctx:hummus.message.Message):
         print(ctx.content)
-        ctx.reply(f"<@{ctx.author.id}> activated test!")
+        await ctx.reply(f"<@{ctx.author.id}> activated test!")
 
 
-Commands(prefix="!",bottoken="INSERT TOKEN HERE", status="online", game="!test")
+Client = Commands(prefix="!",bottoken="INSERT TOKEN HERE", status="online", game="!test")
+
+asyncio.run(Client.run())
 ```
 
 Adding new commands is as simple as creating new functions under the `Commands` class. You cannot add custom arguments to your functions yet, so they will have to only have the arguments of `self` and `ctx:hummus.message.Message`.
@@ -29,14 +32,15 @@ Once this actually becomes decent enough I'll push it to pypi so you can install
 
 Currently there is little to no functions on Hummus.py. For now, you can use a getUser function where you can get any user with their ID. Here's an example:
 ```py
-    def avatar(self,ctx:hummus.message.Message):
+class Commands(CLient):
+    async def avatar(self,ctx:hummus.message.Message):
       print(len(ctx.mentions))
       print(ctx.mentions)
       if len(ctx.mentions) > 0:
         member = ctx.getUser(ctx.mentions[0].id)
-        ctx.reply(member.avatar.url)
+        await ctx.reply(member.avatar.url)
       else:
-        ctx.reply(ctx.author.avatar.url)
+        await ctx.reply(ctx.author.avatar.url)
 ```
 
 As you can see, the above code fetches a member based on the first mention that is in the recieved command, and uses the Member object to get their avatar url.
@@ -49,9 +53,9 @@ You can use events to execute code, as demonstrated below.
 from .events import Events
 
 class Events(Events):
-        def on_message_create(self, message):
+        async def on_message_create(self, message):
             if message.content.startswith("!ping"):
-                message.reply("pong")
+                await message.reply("pong")
 ```
 
 Make sure to put this in your main file, before your `Client` class. You will also want to include this class as the `events` parameter when running the `Client` class, as shown below:
