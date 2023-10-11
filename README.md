@@ -1,5 +1,7 @@
 # Hummus.py
 
+This wrapper is currently in version 0.0.4!
+
 ## Getting started
 
 Download these files and put them in a folder named "hummus". Next to the hummus folder, create your main file. You can use the following code in the main file to connect to Hummus:
@@ -23,6 +25,8 @@ Once this actually becomes decent enough I'll push it to pypi so you can install
 
 ## Usage
 
+### Commands
+
 Currently there is little to no functions on Hummus.py. For now, you can use a getUser function where you can get any user with their ID. Here's an example:
 ```py
     def avatar(self,ctx:hummus.message.Message):
@@ -36,6 +40,27 @@ Currently there is little to no functions on Hummus.py. For now, you can use a g
 ```
 
 As you can see, the above code fetches a member based on the first mention that is in the recieved command, and uses the Member object to get their avatar url.
+
+### Events
+
+You can use events to execute code, as demonstrated below.
+
+```py
+from .events import Events
+
+class Events(Events):
+        def on_message_create(self, message):
+            if message.content.startswith("!ping"):
+                message.reply("pong")
+```
+
+Make sure to put this in your main file, before your `Client` class. You will also want to include this class as the `events` parameter when running the `Client` class, as shown below:
+
+```py
+Commands(prefix="!",bottoken=token, status="online", game="!test", events=Events())
+```
+
+Events are a WIP, expect some bugs.
 
 ## Support
 I am LG125YT#2241 on Hummus, @ytlg on Discord, and @lg125yt on Replit.
