@@ -4,8 +4,7 @@ from websockets.exceptions import ConnectionClosed
 from websockets.sync.client import connect
 import fake_useragent
 import time
-
-import os
+import inspect
 
 from .message import Message
 from .events import Events
@@ -14,6 +13,40 @@ ua = fake_useragent.UserAgent(browsers=['chrome', "firefox", "opera", "safari", 
 agent = ua.random
 token = ""
 base_url = ""
+
+def splitArgs(function,command,name):
+  func_args = inspect.signature(function).parameters
+  
+  kwargs = {param: default.default for param, default in func_args.items() if default.default is not inspect.Parameter.empty}
+  
+  print(kwargs)
+  
+  custom_kwargs = {}
+  args = command.replace('“','"').replace('”','"').split(" ") #filtering
+  if args[0] == name:
+    args.pop(0)
+    if len(args) == 0:
+      args.append("")
+  idx = 0
+  refined = []
+  conc = ""
+  for arg in args:
+    if conc != "":
+      conc = conc + " " + arg.replace("\"","")
+      if arg[-1] == "\"":
+        refined.append(conc)
+        conc = ""
+    else:
+      if arg.startswith("\""):
+        conc = arg.replace("\"","")
+      else:
+        refined.append(arg)
+        
+  for arg in kwargs:
+    custom_kwargs[arg] = refined[idx]
+    idx += 1
+    
+  return custom_kwargs
 
 class Client:
     def __init__(self, prefix,bottoken,status=None,game=None,url=None,websocket=None,cdn=None,events:Events=None):
@@ -70,6 +103,7 @@ class Client:
                     args = func.split(" ")
                     thing = getattr(self, args[0])
                     if callable(thing) and not "__" in args[0]:
-                      await thing(message)
+                      kwargs = splitArgs(thing,message.content.replace(self.prefix+args[0]+" ",""),self.prefix+args[0])
+                      await thing(message,**kwargs)
                   except AttributeError:
                     print(f"Command '{args[0]}' not found as a command.")

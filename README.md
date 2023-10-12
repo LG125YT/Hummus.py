@@ -21,9 +21,32 @@ Client = Commands(prefix="!",bottoken="INSERT TOKEN HERE", status="online", game
 asyncio.run(Client.run())
 ```
 
-Adding new commands is as simple as creating new functions under the `Commands` class. You cannot add custom arguments to your functions yet, so they will have to only have the arguments of `self` and `ctx:hummus.message.Message`.
+Adding new commands is as simple as creating new functions under the `Commands` class. Adding custom arguments is as simple as adding **optional** kwargs in a function, as seen below (remember: In every function, you must have the `self` and `ctx:hummus.message.Message` args!):
+
+```py
+class Commands(Client):
+    async def test(self,ctx:hummus.message.Message,test=None): #extra "test" arg
+        print(test)
+        print(ctx.content)
+        await ctx.reply(f"<@{ctx.author.id}> activated test! Provided args: {test}")
+        if not ctx.dm:
+          await ctx.getGuild(ctx.guild)
+```
+
+You **must** make custom arguments **optional**, or they will not work. Read the "Arguments" section of the README (right below this) for more information on how arguments work.
+
+## Arguments
+
+There are 2 ways to have arguments in a Hummus.py command:
+1. Add custom optional arguments to your function
+2. Use `.split(" ")` to split words in a command into different items on a list
+
+Custom arguments in a function will function differently than using `.split(" ")`. The argument system looks for quotation marks in a message, and if there is text within quotation marks, no matter if there are spaces, the entire text (within the quotations!) will be considered as a **single** argument. This allows for easier usage of commands like `!nickname` where you can specify a nickname with spaces, as long as the nickname is within quotation marks.
+
+Quotation marks are not necessary for arguments with no spaces!
 
 ## Installation
+
 Once this actually becomes decent enough I'll push it to pypi so you can install with pip. For now just download the files and import them locally.
 
 ## Usage
@@ -32,7 +55,7 @@ Once this actually becomes decent enough I'll push it to pypi so you can install
 
 Currently there is little to no functions on Hummus.py. For now, you can use a getUser function where you can get any user with their ID. Here's an example:
 ```py
-class Commands(CLient):
+class Commands(Client):
     async def avatar(self,ctx:hummus.message.Message):
       print(len(ctx.mentions))
       print(ctx.mentions)
