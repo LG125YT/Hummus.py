@@ -1,4 +1,5 @@
 import requests
+import json
 
 class Avatar:
   def __init__(self,id,avatar,cdn):
@@ -20,9 +21,22 @@ class Author:
   async def kick(self):
     headers = {
       'Authorization': f'Bot {self.token}',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'User-Agent': self.agent
       }
     e = requests.delete(url=f"{self.base_url}guilds/{self.guild_id}/members/{self.id}", headers=headers)
+    return e
+
+  async def nick(self,nick):
+    headers = {
+        'Authorization': f'Bot {self.token}',
+        'Content-Type': 'application/json'
+        }
+    if nick == "None":
+        data = json.dumps({'nick': ""})
+    else:
+        data = json.dumps({'nick': nick})
+    e = requests.patch(url=f"{self.base_url}guilds/{self.guild_id}/members/{self.id}",headers=headers,data=data)
     return e
 
 class Member:
@@ -42,6 +56,18 @@ class Member:
       'Content-Type': 'application/json'
       }
     e = requests.delete(url=f"{self.user.base_url}guilds/{self.guild}/members/{self.id}", headers=headers)
+    return e
+
+  async def nick(self,nick):
+    headers = {
+        'Authorization': f'Bot {self.user.token}',
+        'Content-Type': 'application/json'
+        }
+    if nick == "None":
+        data = json.dumps({'nick': ""})
+    else:
+        data = json.dumps({'nick': nick})
+    e = requests.patch(url=f"{self.user.base_url}/guilds/{self.guild}/members/{self.id}",headers=headers,data=data)
     return e
 
 class Presence:

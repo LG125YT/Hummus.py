@@ -6,6 +6,8 @@ import fake_useragent
 import time
 import inspect
 
+import os
+
 from .message import Message
 from .events import Events
 from .allguild import AllGuild
@@ -42,10 +44,14 @@ def splitArgs(function,command,name):
         conc = arg.replace("\"","")
       else:
         refined.append(arg)
-        
-  for arg in kwargs:
-    custom_kwargs[arg] = refined[idx]
-    idx += 1
+
+  if len(args) > 1:
+    for arg in kwargs:
+      custom_kwargs[arg] = refined[idx]
+      idx += 1
+  else:
+    for arg in kwargs:
+      custom_kwargs[arg] = refined[0]
     
   return custom_kwargs
 
