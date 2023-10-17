@@ -68,6 +68,38 @@ class Commands(Client):
 
 As you can see, the above code fetches a member based on the first mention that is in the recieved command, and uses the Member object to get their avatar url.
 
+### Moderation Commands (or commands requiring permissions)
+
+You can get access to Hummus.py's permissions checking feature with `from hummus.funcs import fullPermsCheck`. Its arguments are the `Message` object you recieve on command, your class instance aka `self`, the permission you want to check, and **optionally,** the target user ID to compare permissions with. What the `fullPermsCheck()` function does is that it checks to see if the user has the required permission, and it also checks whether it has a higher role than the target ID when specified (permissions comparing). You would use the function like this:
+
+```py
+perms = await fullPermsCheck(ctx,self,"kick_members",ctx.mentions[0]) #assume this is in a command function
+```
+
+The code would return a `bool` object which you could use to verify that the user executing the command has the required permissions.
+
+So, for commands that require permissions such as kicking members, the **optimal** code would be the following:
+
+```py
+class Commands(Client):
+  async def kick(self,ctx:hummus.message.Message):
+    if len(ctx.mentions) > 0:
+      perms = await fullPermsCheck(ctx,self,"kick_members",ctx.mentions[0])
+      member = await ctx.getUser(ctx.mentions[0])
+      if perms:
+        e = await member.kick()
+        if e.staus_code == 200 or e.status_code == 204:
+          await ctx.reply(f"i have kicked <@{member.id}>!")
+        else:
+          await ctx.reply(f"Error kicking user. Status code: {e.status_code}")
+      else:
+        await ctx.reply(f"You do not have the perms to kick {member.user.username}!")
+    else:
+      await ctx.reply("Please ping someone to kick them.")
+```
+
+Hummus's API is very unfinished, which means fetching a guild member with the endpoint doesn't exist, as is with many other endpoints. Therefore, Hummus.py has to rely on login information for necessary info such as role permissions. Because I am lazy and don't know how Hummus/Discord's permissions integers works, Hummus.py now uses Discord.py as a dependency (it has a needed permissions function). However, this is mainly a package process, which means you don't need to manually import Discord.py in your main bot code, you just need to have it installed.
+
 ### Events
 
 You can use events to execute code, as demonstrated below.
