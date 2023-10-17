@@ -1,6 +1,6 @@
 # Hummus.py
 
-This is an asynchronous wrapper currently in version 0.0.5!
+This is an asynchronous wrapper currently in version 0.2.0!
 
 ## Getting started
 
@@ -119,7 +119,7 @@ Make sure to put this in your main file, before your `Client` class. You will al
 Commands(prefix="!",bottoken=token, status="online", game="!test", events=Events())
 ```
 
-Events are a WIP, expect some bugs.
+Events are a WIP, expect some bugs and a lot of missing events.
 
 ## Support
 I am LG125YT#2241 on Hummus, @ytlg on Discord, and @lg125yt on Replit.
