@@ -8,6 +8,7 @@ import inspect
 
 from .message import Message
 from .events import Events
+from .allguild import AllGuild
 
 ua = fake_useragent.UserAgent(browsers=['chrome', "firefox", "opera", "safari", "edge", "internet explorer"])
 agent = ua.random
@@ -75,6 +76,7 @@ class Client:
       reconnect = False
       session = ""
       seq = ""
+      self.allGuilds = []
       while True:
           with connect(self.websocket,user_agent_header=ua.random) as websocket:
             print("restarting...")
@@ -89,21 +91,22 @@ class Client:
               seq = event['s']
               if event['t'] == "READY":
                 session = event['d']['session_id']
-                print("ready!")
+                print("ready, recieving login guild data")
               if event['t'] == "GUILD_CREATE":
-                print(event['d']['name'])
+                self.allGuilds.append(AllGuild(event['d'],self.cdn,self.token,self.base_url))
               if event['op'] == 1:
                 websocket.send(json.dumps({"op":1}))
               if event['t'] == "MESSAGE_CREATE":
-                await self.events.on_message_create(Message(event['d'],self.token,agent,self.base_url,self.cdn))
+                await self.events.on_message_create(Message(event['d'],self.token,agent,self.base_url,self.cdn,self))
                 if event['d']['content'].startswith("!"):
                   try:
-                    message = Message(event['d'],self.token,agent,self.base_url,self.cdn)
+                    message = Message(event['d'],self.token,agent,self.base_url,self.cdn,self)
                     func = message.content.replace(self.prefix,"")
                     args = func.split(" ")
                     thing = getattr(self, args[0])
-                    if callable(thing) and not "__" in args[0]:
+                    if callable(thing) and not "__" in args[0] and args[0] != "run":
                       kwargs = splitArgs(thing,message.content.replace(self.prefix+args[0]+" ",""),self.prefix+args[0])
                       await thing(message,**kwargs)
-                  except AttributeError:
-                    print(f"Command '{args[0]}' not found as a command.")
+                  except AttributeError as e:
+                    if args[0] in str(e):
+                      print(f"Command '{args[0]}' not found as a command.")
