@@ -1,9 +1,7 @@
-#from .channel import Channel
-from .author import Avatar
+from .member import Avatar
 
 class Guild:
   def __init__(self,data,cdn):
-    print(data)
     self.id = data['id']
     self.name = data['name']
     self.icon = Avatar(self.id,data['icon'],cdn)
@@ -21,3 +19,23 @@ class Guild:
     for voice_state in data['voice_states']:
       self.voice_states.append(voice_state)
     self.afk_timeout = data['afk_timeout']
+
+class Channel:
+  def __init__(self,data):
+    self.type = data['type']
+    self.id = data['id']
+    self.guild_id = data['guild_id']
+    self.topic = data['topic']
+    self.last_message_id = data['last_message_id']
+    self.name = data['name']
+    self.permission_overwrites = []
+    for overwrite in data['permission_overwrites']:
+      self.permission_overwrites.append(PermOverwrites(overwrite))
+    self.position = data['position']
+
+class PermOverwrites:
+  def __init__(self,data):
+    self.id = data['id']
+    self.type = data['type']
+    self.allow = data['allow']
+    self.deny = data['deny']
