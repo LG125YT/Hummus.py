@@ -140,6 +140,15 @@ class Message:
         i += 1
       return messages
       
+    async def deleteMessage(self,id):
+      headers = {
+        'Authorization': f'Bot {self.token}',
+        'Content-Type': 'application/json',
+        'User-Agent': self.agent
+      }
+      e = requests.delete(url=f"{self.base_url}channels/{self.channel}/messages/{id}",headers=headers)
+      return e
+
     async def bulkDelete(self,messages):
       if len(messages) > 100:
         raise Exception("Please provide less than 100 messages!") #1. no spam api!!! 2. i believe this is the limit for bulk delete back then

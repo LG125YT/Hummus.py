@@ -1,6 +1,6 @@
 # Hummus.py
 
-This is an asynchronous wrapper currently in version 0.3.0!
+This is an asynchronous wrapper currently in version 0.3.1!
 
 ## Getting started
 
@@ -111,6 +111,12 @@ class Commands(Client):
       await ctx.reply("Please ping someone to kick them.")
 ```
 
+Existing moderation commands you can use:
+- `member.kick()`
+- `member.nick()`
+- `ctx.deleteMessage()`
+- `ctx.bulkDelete()`
+
 Hummus's API is very unfinished, which means fetching a guild member with the endpoint doesn't exist, as is with many other endpoints. Therefore, Hummus.py has to rely on login information for necessary info such as role permissions. Because I am lazy and don't know how Hummus/Discord's permissions integers works, Hummus.py now uses Discord.py as a dependency (it has a needed permissions function). However, this is mainly a package process, which means you don't need to manually import Discord.py in your main bot code, you just need to have it installed.
 
 ### Events
@@ -147,6 +153,9 @@ I am LG125YT#2241 on Hummus, @ytlg on Discord, and @lg125yt on Replit.
 Currently attempting to add all endpoints from the [Hummus API docs](https://hummus.sys42.net/developers/docs/intro) beginning with most important for bot development.
 
 ## Changelog
+
+Version 0.3.1:
+- Quick update just added `ctx.deleteMessage(id)` because i forgor to add it before :sku:
 
 Version 0.3.0:
 - More events in the `Events` class work now, also `self.allGuilds` in the `Client` class now updates on related events like guild member join/leave and guild add/remove
