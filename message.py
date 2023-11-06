@@ -1,4 +1,4 @@
-from .member import Author
+from .member import User
 from .guild import Guild
 import requests
 import json
@@ -20,7 +20,7 @@ class Message:
         self.mention_roles = []
         self.mentions = []
         for mention in data['mentions']:
-          self.mentions.append(Author(mention,cdn,self.token,self.base_url))
+          self.mentions.append(User(mention,cdn,self.token,self.base_url))
         self.attachments = data['attachments']
         self.embeds = data['embeds']
         self.edited_timestamp = data['edited_timestamp']
@@ -29,10 +29,20 @@ class Message:
         self.tts = data['tts']
         self.timestamp = data['timestamp']
         self.webhook_id = data['webhook_id']
-        self.author = Author(data['author'],cdn,self.token,self.base_url,self.guild_id)
+        self.author = User(data['author'],cdn,self.token,self.base_url,self.guild_id)
         self.cdn = cdn
-      
-    async def reply(self, content):
+
+    async def edit(self, content):
+      headers = {
+        'Authorization': f'Bot {self.token}',
+        'Content-Type': 'application/json',
+        'User-Agent': self.agent
+      }
+      data = {"content":content}
+      r = requests.patch(f"{self.base_url}channels/{self.channel}/messages/{self.id}",headers=headers,data=json.dumps(data))
+      return Message(r.json(),self.token,self.agent,self.base_url,self.cdn,self.instance)
+
+    async def send(self, content):
       headers = {
         'Authorization': f'Bot {self.token}',
         'Content-Type': 'application/json',
@@ -40,7 +50,19 @@ class Message:
         }
       data = json.dumps({'content': content,
                             'tts': False})
-      requests.post(url=f"{self.base_url}/channels/{self.channel}/messages",headers=headers,data=data)
+      e = requests.post(url=f"{self.base_url}/channels/{self.channel}/messages",headers=headers,data=data)
+      return Message(e.json(),self.token,self.agent,self.base_url,self.cdn,self.instance)
+      
+    async def reply(self, content):
+      headers = {
+        'Authorization': f'Bot {self.token}',
+        'Content-Type': 'application/json',
+        'User-Agent': self.agent
+        }
+      data = json.dumps({'content': f"> {self.content} (<@{self.author.id}>)\n{content}",
+                            'tts': False})
+      e = requests.post(url=f"{self.base_url}/channels/{self.channel}/messages",headers=headers,data=data)
+      return Message(e.json(),self.token,self.agent,self.base_url,self.cdn,self.instance)
     
     async def getUser(self,id):
       headers = {
@@ -60,7 +82,7 @@ class Message:
         author = Author(e.json(),self.cdn,self.token,self.base_url,guildID)
         return author
       except Exception as f:
-        print(f)
+        print(f"could not create author class: {f}")
         if e.json()['code'] == 10001:
           pass
 
@@ -79,4 +101,55 @@ class Message:
         'User-Agent': self.agent
         }
       e = requests.get(url=f"{self.base_url}guilds/{guild}",headers=headers)
+      #print(e.json())
+      #try:
       guild = Guild(e.json(),self.cdn)
+      print(guild.id)
+        #return channel
+      #except Exception:
+  
+    async def getMessage(self,id):
+      headers = {
+        'Authorization': f'Bot {self.token}',
+        'Content-Type': 'application/json',
+        'User-Agent': self.agent
+      }
+      data = {"limit":100} #limit doesnt work but hell who cares
+      e = requests.get(url=f"{self.base_url}channels/{self.channel}/messages/",headers=headers,json=data)
+      for message in e.json():
+        if id == message['id']:
+          return Message(message,self.token,self.agent,self.base_url,self.cdn,self.instance)
+  
+    async def getMessages(self,channel,limit):
+      try:
+        limit = int(limit)
+      except Exception:
+        raise Exception("Limit must be an integer.")
+      headers = {
+        'Authorization': f'Bot {self.token}',
+        'Content-Type': 'application/json',
+        'User-Agent': self.agent
+      }
+      data = {"limit":limit}
+      e = requests.get(url=f"{self.base_url}channels/{channel}/messages/",headers=headers,json=data)
+      messages = []
+      i = 0
+      for message in e.json():
+        if i < limit:
+          messages.append(Message(message,self.token,self.agent,self.base_url,self.cdn,self.instance))
+        i += 1
+      return messages
+      
+    async def bulkDelete(self,messages):
+      if len(messages) > 100:
+        raise Exception("Please provide less than 100 messages!") #1. no spam api!!! 2. i believe this is the limit for bulk delete back then
+      ids = []
+      for message in messages:
+        ids.append(message.id)
+      headers = {
+        'Authorization': f'Bot {self.token}',
+        'Content-Type': 'application/json',
+        'User-Agent': self.agent
+      }
+      for id in ids:
+        requests.delete(url=f"{self.base_url}channels/{self.channel}/messages/{id}",headers=headers) #bulk delete endpoint doesnt exist (absolute stupid)

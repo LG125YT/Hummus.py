@@ -1,3 +1,4 @@
+#welcome to stupidity central
 import json
 import requests
 from websockets.exceptions import ConnectionClosed
@@ -5,68 +6,94 @@ from websockets.sync.client import connect
 import fake_useragent
 import time
 import inspect
+import asyncio
 
 import os
 
 from .message import Message
+from .member import User, Member
 from .events import Events
 from .allguild import AllGuild
+from .fetch import Fetch
 
 ua = fake_useragent.UserAgent(browsers=['chrome', "firefox", "opera", "safari", "edge", "internet explorer"])
 agent = ua.random
 token = ""
 base_url = ""
 
-def splitArgs(function,command,name):
-  func_args = inspect.signature(function).parameters
-  
-  kwargs = {param: default.default for param, default in func_args.items() if default.default is not inspect.Parameter.empty}
-  
-  print(kwargs)
-  
-  custom_kwargs = {}
-  args = command.replace('“','"').replace('”','"').split(" ") #filtering
-  if args[0] == name:
-    args.pop(0)
-    if len(args) == 0:
-      args.append("")
-  idx = 0
-  refined = []
-  conc = ""
-  for arg in args:
-    if conc != "":
-      conc = conc + " " + arg.replace("\"","")
-      if arg[-1] == "\"":
-        refined.append(conc)
-        conc = ""
-    else:
-      if arg.startswith("\""):
-        conc = arg.replace("\"","")
-      else:
-        refined.append(arg)
 
-  if len(args) > 1:
-    for arg in kwargs:
-      custom_kwargs[arg] = refined[idx]
-      idx += 1
-  else:
-    for arg in kwargs:
-      custom_kwargs[arg] = refined[0]
-    
-  return custom_kwargs
+def splitArgs(function, command, name, instance, mentions):
+      func_args = list(inspect.signature(function).parameters.values())[1:]
+      custom_kwargs = []
+
+      args = command.replace('“','"').replace('”','"').replace("‘","\"").replace("’","\"").split() #filtering
+
+      if args and args[0] == name:
+          args.pop(0)
+          if not args:
+              return []
+
+      refined = []
+      in_quotes = False
+      current_arg = ""
+
+      for arg in args:
+          if in_quotes:
+              current_arg += " " + arg
+              if arg.endswith("\""):
+                  in_quotes = False
+                  refined.append(current_arg.strip("\""))
+                  current_arg = ""
+              continue
+
+          if arg.startswith("\""):
+              in_quotes = True
+              current_arg = arg.strip("\"")
+          else:
+              refined.append(arg)
+
+      mention_idx = 0
+      idx = 0
+      for arg_name, arg in zip(func_args, refined):
+          if idx >= len(refined):
+              break
+
+          if arg_name.annotation == str:
+              custom_kwargs.append(str(arg))
+          elif arg_name.annotation == int:
+            try:
+              custom_kwargs.append(int(arg))
+            except Exception:
+              print(f"Ignoring exception: Provided argument '{arg}' is not an integer.")
+          elif arg_name.annotation == User:
+              try:
+                  custom_kwargs.append(mentions[mention_idx])
+                  mention_idx += 1
+              except Exception:
+                  print(f"\033[91mIgnoring exception: Provided argument '{arg}' is not a mention.\033[0m")
+          else:
+              custom_kwargs.append(arg)
+
+          idx += 1
+      return custom_kwargs
 
 class Client:
-    def __init__(self, prefix,bottoken,status=None,game=None,url=None,websocket=None,cdn=None,events:Events=None):
+    def __init__(self, prefix,bottoken,status=None,game=None,url=None,cdn=None,events:Events=None):
       if url == None:
         url = "https://hummus.sys42.net/api/v6/"
+      else:
+        if not url[(len(url)-1)] == "/":
+          url = url + "/"
       if status == None:
         status = "online"
-      if websocket == None:
-        websocket = "wss://hummus-gateway.sys42.net/?v=6&encoding=json&compress?=zlib-stream"
+      if url:
+        e = requests.get(url[:-3]+"/gateway")
+        if e.json().get('url'):
+          websocket = e.json()['url']
       if cdn == None:
         cdn = "https://hummus-cdn.sys42.net/"
       if events == None:
-        events = Events()
+        events = asyncio.run(self.LISTEN(Events(self),silent=True))
       self.websocket = websocket
       self.prefix = prefix
       self.token = bottoken
@@ -77,15 +104,21 @@ class Client:
       self.cdn = cdn
       self.events = events
       self.status = status
+      self.fetch = Fetch(self.token,self.base_url,self.cdn,self)
+
+    async def LISTEN(self,instance:Events,silent:bool=False):
+      self.events = instance
+      if not silent:
+        print("\033[92mRegistered Events class to listen.\033[0m")
       
-    async def run(self):
+    async def RUN(self):
       reconnect = False
       session = ""
       seq = ""
       self.allGuilds = []
       while True:
           with connect(self.websocket,user_agent_header=ua.random) as websocket:
-            print("restarting...")
+            print("\033[92mrestarting...\033[0m")
             websocket.send(json.dumps({'op': 2,'d': {'token':self.token,'presence': {'status': self.status,'game': {"name":self.game,"type":1}}}}))
             if reconnect:
               event = json.loads(websocket.recv())
@@ -97,12 +130,45 @@ class Client:
               seq = event['s']
               if event['t'] == "READY":
                 session = event['d']['session_id']
-                print("ready, recieving login guild data")
+                print("\033[92mready, recieving login guild data\033[0m")
               if event['t'] == "GUILD_CREATE":
                 self.allGuilds.append(AllGuild(event['d'],self.cdn,self.token,self.base_url))
+              if event['t'] == "GUILD_DELETE":
+                self.events.on_guild_delete(event['d']['id'])
+                idx = 0
+                for guild in self.allGuilds:
+                  if guild.guild.id == event['d']['id']:
+                    self.allGuilds.pop(idx)
+                  idx += 1
+
+              if event['t'] == "GUILD_MEMBER_ADD":
+                member = Member(event['d'],self.cdn,self.token,self.base_url,event['d']['guild_id'])
+                idx = 0
+                for guild in self.allGuilds:
+                  if guild.guild.id == event['d']['guild_id']:
+                    self.allGuilds[idx].members.append(member)
+                  idx += 1
+                self.events.on_guild_member_add(event['d']['guild_id'],member)
+                
+              if event['t'] == "GUILD_MEMBER_REMOVE":
+                member = User(event['d']['user'],self.base_url,self.token,self.cdn)
+                idx = 0
+                for guild in self.allGuilds:
+                  if guild.guild.id == event['d']['guild_id']:
+                    midx = 0
+                    for member in self.allGuilds[idx].members:
+                      if member.id == event['d']['user']['id']:
+                        self.allGuilds[idx].members.pop(midx)
+                  idx += 1
+                self.events.on_guild_member_remove(event['d']['guild_id'],member)
+              
+              if event['t'] == "MESSAGE_DELETE":
+                self.events.on_message_delete(event['d']['id'],event['d']['channel_id'],event['d']['guild_id'])
+                await self.fetch.getMessage(event['d']['channel_id'],event['d']['id'])
               if event['op'] == 1:
                 websocket.send(json.dumps({"op":1}))
               if event['t'] == "MESSAGE_CREATE":
+                await self.fetch.getMessage(event['d']['channel_id'],event['d']['id'])
                 await self.events.on_message_create(Message(event['d'],self.token,agent,self.base_url,self.cdn,self))
                 if event['d']['content'].startswith("!"):
                   try:
@@ -110,9 +176,12 @@ class Client:
                     func = message.content.replace(self.prefix,"")
                     args = func.split(" ")
                     thing = getattr(self, args[0])
-                    if callable(thing) and not "__" in args[0] and args[0] != "run":
-                      kwargs = splitArgs(thing,message.content.replace(self.prefix+args[0]+" ",""),self.prefix+args[0])
-                      await thing(message,**kwargs)
+                    if callable(thing) and not "__" in args[0] and args[0] != "RUN" and args[0] != "LISTEN":
+                      try:
+                        command_args = splitArgs(thing,message.content,self.prefix+args[0],self,message.mentions)
+                        await thing(message,*command_args)
+                      except Exception as e:
+                        print(f"\033[91mIgnoring exception: {e}\033[0m")
                   except AttributeError as e:
                     if args[0] in str(e):
-                      print(f"Command '{args[0]}' not found as a command.")
+                      print(f"\033[91mCommand '{args[0]}' not found as a command.\033[0m")
