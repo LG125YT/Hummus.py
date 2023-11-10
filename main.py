@@ -8,7 +8,7 @@ import time
 import inspect
 import asyncio
 
-import os
+import os #i dont remember if i need this or not lol
 
 from .message import Message
 from .member import User, Member
@@ -87,13 +87,15 @@ class Client:
       if status == None:
         status = "online"
       if url:
-        e = requests.get(url[:-3]+"/gateway")
+        e = requests.get(url[:-3]+"/gateway",headers={"User-Agent":agent})
         if e.json().get('url'):
           websocket = e.json()['url']
       if cdn == None:
         cdn = "https://hummus-cdn.sys42.net/"
       if events == None:
-        events = asyncio.run(self.LISTEN(Events(self),silent=True))
+        asyncio.run(self.LISTEN(Events(self),silent=True))
+      else:
+        self.events = events
       self.websocket = websocket
       self.prefix = prefix
       self.token = bottoken
@@ -102,7 +104,6 @@ class Client:
       self.base_url = url
       base_url = url
       self.cdn = cdn
-      self.events = events
       self.status = status
       self.fetch = Fetch(self.token,self.base_url,self.cdn,self)
 
@@ -169,7 +170,7 @@ class Client:
                 websocket.send(json.dumps({"op":1}))
               if event['t'] == "MESSAGE_CREATE":
                 await self.fetch.getMessage(event['d']['channel_id'],event['d']['id'])
-                await self.events.on_message_create(Message(event['d'],self.token,agent,self.base_url,self.cdn,self))
+                self.events.on_message_create(Message(event['d'],self.token,agent,self.base_url,self.cdn,self))
                 if event['d']['content'].startswith("!"):
                   try:
                     message = Message(event['d'],self.token,agent,self.base_url,self.cdn,self)
