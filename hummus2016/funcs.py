@@ -36,7 +36,7 @@ async def checkPositions(user1:Member,user2:Member,allGuilds):
       if fetched.position < highest1.position:
         highest1 = fetched
   else:
-    highest1 = FakeRole(999999)
+    highest1 = FakeRole(999999) #who the hell in their right mind is going to make 999999 roles just to fuck with this
 
   if len(user2.roles) > 0:
     highest2 = await getRole(user2.roles[0],selected)
@@ -52,7 +52,7 @@ async def checkPositions(user1:Member,user2:Member,allGuilds):
 async def fullPermsCheck(ctx,instance,perm,target_id=None):
     perms = await checkPerms(ctx,instance.allGuilds,perm)
     if perms:
-      if not target_id == None:
+      if target_id is not None:
           member = await ctx.getGuildUser(target_id)
           author = await ctx.getGuildUser(ctx.author.id)
           pos = await checkPositions(author,member,instance.allGuilds)

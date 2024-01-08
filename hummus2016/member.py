@@ -7,7 +7,7 @@ class Avatar:
     self.avatar = avatar
     self.url = f"{cdn}avatars/{self.id}/{self.avatar}.png"
 
-class Author:
+class User:
   def __init__(self,data,cdn,token,url,guild_id=None):
     self.guild_id = guild_id
     self.base_url = url
@@ -15,6 +15,7 @@ class Author:
     self.id = data['id']
     self.username = data['username']
     self.discriminator = data['discriminator']
+    self.mention = f"<@{data['id']}>"
     self.avatar = Avatar(self.id,data['avatar'],cdn)
     self.bot = data['bot']
 
@@ -43,13 +44,14 @@ class Member:
   def __init__(self,data,cdn,token,url,guild):
     self.guild = guild
     self.id = data['id']
+    self.mention = f"<@{data['id']}>"
     self.nick = data['nick']
     self.roles = data['roles']
     self.joined_at = data['joined_at']
     self.deaf = data['deaf']
     self.mute = data['mute']
-    self.user = Author(data['user'],cdn,token,url,guild)
-    
+    self.user = User(data['user'],cdn,token,url,guild)
+
   async def kick(self):
     headers = {
       'Authorization': f'Bot {self.token}',
@@ -75,4 +77,4 @@ class Presence:
     self.guild = guild
     self.game = data['game']
     self.status = data['status']
-    self.user = Author(data['user'],cdn,token,url,guild)
+    self.user = User(data['user'],cdn,token,url,guild)
