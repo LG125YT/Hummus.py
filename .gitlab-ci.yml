@@ -5,7 +5,8 @@ before_script:
   - pip install setuptools
 pages:
   script:
-    - python setup.py
+    - python setup.py sdist bdist_wheel
+    - twine upload dist/*
     - done
   artifacts:
     paths:
