@@ -3,6 +3,7 @@ image: python:3.11.6
 # Functions that should be executed before the build script is run
 before_script:
   - pip install setuptools
+  - pip install twine
 pages:
   script:
     - python setup.py sdist bdist_wheel
