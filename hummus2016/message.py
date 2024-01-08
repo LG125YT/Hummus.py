@@ -1,11 +1,35 @@
+from discord.channel import PartialMessageable
 from .member import User
 from .guild import Guild
+from .embed import Embed
 import requests
 import json
 import asyncio
+from requests_toolbelt import MultipartEncoder
+import filetype
+import random
+import string
+
+async def prepareEmbed(embed):
+  prep_embed = {"title":embed.title,"description":embed.description,"color":embed.color,"url":embed.url,"timestamp":embed.timestamp,"fields":[]}
+  #embed image and thumbnail do not work on hummus
+  if embed.footer:
+    prep_embed["footer"] = {"text":embed.footer.text,"icon_url":embed.footer.icon_url}
+  if embed.author:
+    prep_embed["author"] = {"name":embed.author.name,"url":embed.author.url,"icon_url":embed.author.icon_url}
+  for field in embed.fields:
+    prep_embed['fields'].append({"name":field.name,"value":field.value,"inline":field.inline})
+  embed = [prep_embed]
+  return embed
 
 class Message:
-    def __init__(self,data,token,agent,base_url,cdn,instance):
+    def __init__(self,data,token,agent,base_url,cdn,instance,reply:bool=False,reply_content=None,reply_author:User=None):
+        if reply:
+          self.is_reply = True
+          self.original_reply = reply_content
+          self.original_author = reply_author
+        else:
+          self.is_reply = False
         self.instance = instance
         self.token = token
         self.agent = agent
@@ -38,32 +62,84 @@ class Message:
         'Content-Type': 'application/json',
         'User-Agent': self.agent
       }
-      data = {"content":content}
+      if self.is_reply:
+        data = {"content":f"> {self.original_reply} \n<@{self.original_author.id}> {content}"}
+      else:
+        data = {"content":content}
       r = requests.patch(f"{self.base_url}channels/{self.channel}/messages/{self.id}",headers=headers,data=json.dumps(data))
-      return Message(r.json(),self.token,self.agent,self.base_url,self.cdn,self.instance)
+      if self.is_reply:
+        return Message(r.json(),self.token,self.agent,self.base_url,self.cdn,self.instance,reply=True,reply_content=content,reply_author=self.original_author)
+      else:
+        return Message(r.json(),self.token,self.agent,self.base_url,self.cdn,self.instance,reply=False)
 
-    async def send(self, content):
-      headers = {
+    async def send(self, content=None, embed:Embed=None,file=None):
+      if content == embed == file == None:
+        raise Exception("Please inlcude either a message content, embed, or file.") #will be caught by the exception handler in main.py and formatted correctly
+      if file: #purposefully prioritizes files over embeds
+        if embed:
+          print("\033[91mIgnoring exception: Cannot send embed and file at the same time. Will send file only.\033[0m") #code does not need to stop, so no exception raised
+        #i kinda skidded most of this from fossbotpy dont kill me please
+        openedfile = open(file,"rb")
+        thing = (file, openedfile, 'image/png')
+        otherthing = {"attachments":thing}
+        headers = {
         'Authorization': f'Bot {self.token}',
-        'Content-Type': 'application/json',
-        'User-Agent': self.agent
+        'Content-Type': 'multipart/form-data; boundary=418737004913864675834237162763',
+        'User-Agent': self.agent,
         }
-      data = json.dumps({'content': content,
-                            'tts': False})
+        kind = filetype.guess(file)
+        mimetype, extensiontype, fd = kind.mime, kind.extension, b""
+        data = {'content': content,'tts':False,'file':{"filename":file,"Content-Type":"image/png"}}
+        fields = {"file":(file,open(file,'rb').read(),mimetype), "payload_json":(None,json.dumps(data))}
+        data = MultipartEncoder(fields=fields,boundary='----WebKitFormBoundary'+''.join(random.sample(string.ascii_letters+string.digits,16)))
+        headers['Content-Type'] = data.content_type
+      else:
+        #this i did not skid, why would i, its so easy
+        if embed:
+          embed = await prepareEmbed(embed)
+        headers = {
+          'Authorization': f'Bot {self.token}',
+          'Content-Type': 'application/json',
+          'User-Agent': self.agent,
+          }
+        data = json.dumps({'content': content,
+                           'embeds': embed,
+                              'tts': False})
       e = requests.post(url=f"{self.base_url}/channels/{self.channel}/messages",headers=headers,data=data)
-      return Message(e.json(),self.token,self.agent,self.base_url,self.cdn,self.instance)
-      
-    async def reply(self, content):
-      headers = {
+      return Message(e.json(),self.token,self.agent,self.base_url,self.cdn,self.instance,reply=False)
+
+    async def reply(self, content=None,embed:Embed=None,file=None):
+      if content == embed == file == None:
+        raise Exception("Please inlcude either a message content, embed, or file.")
+      if file:
+        openedfile = open(file,"rb")
+        thing = (file, openedfile, 'image/png')
+        otherthing = {"attachments":thing}
+        headers = {
         'Authorization': f'Bot {self.token}',
-        'Content-Type': 'application/json',
-        'User-Agent': self.agent
+        'Content-Type': 'multipart/form-data; boundary=418737004913864675834237162763',
+        'User-Agent': self.agent,
         }
-      data = json.dumps({'content': f"> {self.content} (<@{self.author.id}>)\n{content}",
-                            'tts': False})
+        kind = filetype.guess(file)
+        mimetype, extensiontype, fd = kind.mime, kind.extension, b""
+        data = {'content': f'> {self.content} \n<@{self.author.id}> {content}','tts':False,'file':{"filename":file,"Content-Type":"image/png"}}
+        fields = {"file":(file,open(file,'rb').read(),mimetype), "payload_json":(None,json.dumps(data))}
+        data = MultipartEncoder(fields=fields,boundary='----WebKitFormBoundary'+''.join(random.sample(string.ascii_letters+string.digits,16)))
+        headers['Content-Type'] = data.content_type
+      else:
+        if embed:
+          embed = await prepareEmbed(embed)
+        headers = {
+          'Authorization': f'Bot {self.token}',
+          'Content-Type': 'application/json',
+          'User-Agent': self.agent
+          }
+        data = json.dumps({'content': f"> {self.content} \n<@{self.author.id}> {content}",
+                              'embeds': embed,
+                              'tts': False})
       e = requests.post(url=f"{self.base_url}/channels/{self.channel}/messages",headers=headers,data=data)
-      return Message(e.json(),self.token,self.agent,self.base_url,self.cdn,self.instance)
-    
+      return Message(e.json(),self.token,self.agent,self.base_url,self.cdn,self.instance,reply=True,reply_content=self.content,reply_author=self.author)
+
     async def getUser(self,id):
       headers = {
         'Authorization': f'Bot {self.token}',
@@ -107,7 +183,7 @@ class Message:
       print(guild.id)
         #return channel
       #except Exception:
-  
+
     async def getMessage(self,id):
       headers = {
         'Authorization': f'Bot {self.token}',
@@ -119,7 +195,7 @@ class Message:
       for message in e.json():
         if id == message['id']:
           return Message(message,self.token,self.agent,self.base_url,self.cdn,self.instance)
-  
+
     async def getMessages(self,channel,limit):
       try:
         limit = int(limit)
@@ -139,7 +215,7 @@ class Message:
           messages.append(Message(message,self.token,self.agent,self.base_url,self.cdn,self.instance))
         i += 1
       return messages
-      
+
     async def deleteMessage(self,id):
       headers = {
         'Authorization': f'Bot {self.token}',
