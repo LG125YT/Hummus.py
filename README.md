@@ -1,10 +1,17 @@
 # Hummus.py
 
-This is an asynchronous wrapper currently in version 0.4.0!
+This is an asynchronous wrapper currently in version 0.5.1!
+
+## Installation
+
+You can do `pip install hummus2016.py` to install Hummus.py as a package, or you can import it manually by downloading the files at [the GitLab repository](https://gitlab.com/lg125yt/hummus.py)
+
+# Notice:
+For some reason, PyPi is not downloading the `hummus` folder correctly, so it is best to replace `import hummus` with `import hummus2016 as hummus` and `from hummus ...` with `from hummus2016 ...`. This only applies if youre using pip to install Hummus.py. This file will remain unchanged though.
 
 ## Getting started
 
-Download these files and put them in a folder named "hummus". Next to the hummus folder, create your main file. You can use the following code in the main file to connect to Hummus:
+You can use the following code in the main file to connect to Hummus:
 ```py
 import hummus
 from hummus import Client
@@ -20,7 +27,7 @@ Client = Commands(prefix="!",bottoken="INSERT TOKEN HERE", status="online", game
 asyncio.run(Client.RUN())
 ```
 
-Adding new commands is as simple as creating new functions under the `Commands` class. Adding custom arguments is as simple as adding parameters in a function, as seen below (remember: In every function, you must have the `self` and `ctx:hummus.message.Message` args!):
+Adding new commands is as simple as creating new functions under the `Commands` class. No need for decorators, just because. Adding custom arguments is as simple as adding parameters in a function, as seen below (remember: In every function, you must have the `self` and `ctx` args!):
 
 ```py
 class Commands(Client):
@@ -35,16 +42,12 @@ You can make these parameters have annotations (`test: str` or `mention: hummus.
 ## Arguments
 
 There are 2 ways to have arguments in a Hummus.py command:
-1. Add custom optional arguments to your function
+1. Add extra arguments to your function
 2. Use `.split(" ")` to split words in a command into different items on a list
 
 Custom arguments in a function will function differently than using `.split(" ")`. The argument system looks for quotation marks in a message, and if there is text within quotation marks, no matter if there are spaces, the entire text (within the quotations!) will be considered as a **single** argument. This allows for easier usage of commands like `!nickname` where you can specify a nickname with spaces, as long as the nickname is within quotation marks.
 
 Quotation marks are not necessary for arguments with no spaces!
-
-## Installation
-
-You can do `pip install hummus2016.py` to install Hummus.py as a package, or you can import it manually by downloading the files at [the GitLab repository](https://gitlab.com/lg125yt/hummus.py)
 
 ## Usage
 
@@ -112,6 +115,7 @@ Existing moderation commands you can use:
 - `member.nick()`
 - `ctx.deleteMessage()`
 - `ctx.bulkDelete()`
+- `ctx.delete()`
 
 Hummus's API is very unfinished, which means fetching a guild member with the endpoint doesn't exist, as is with many other endpoints. Therefore, Hummus.py has to rely on login information for necessary info such as role permissions. Because I am lazy and don't know how Hummus/Discord's permissions integers works, Hummus.py now uses Discord.py as a dependency (it has a needed permissions function). However, this is mainly a package process, which means you don't need to manually import Discord.py in your main bot code, you just need to have it installed.
 
@@ -123,7 +127,7 @@ You can use events to execute code, as demonstrated below.
 from hummus import Events
 
 class Events(Events):
-	async def on_message_create(self, message):
+	async def on_message_create(self, message): #activates every time a message is sent in a channel a bot can see
 		if message.content.startswith("ping"):
 			await message.reply("pong")
 ```
@@ -134,8 +138,8 @@ Make sure to put this in your main file, before your `Client` class. You will al
 Client = Commands(prefix="!", bottoken=token, status="online", game="!test")
 
 async def bot():
-	Client.LISTEN(Events())
-	Client.RUN()
+	await Client.LISTEN(Events())
+	await Client.RUN()
 
 asyncio.run(bot())
 ```
@@ -162,7 +166,7 @@ current_time_utc = datetime.now(timezone.utc)
 formatted_timestamp = current_time_utc.isoformat()
 ```
 
-You can add attributes to the embed such as fields, footers, or an author like this:
+You can add attributes to the embed such as fields, footers, a thumbnail, an image, or an author like this:
 
 ```py
 class Commands(Client):
@@ -171,6 +175,7 @@ async def test(self,ctx:hummus.Message):
 	await embed.addField(name="field title",value="field value")
 	await embed.addAuthor(name="author",url="https://google.com/",icon_url="https://www.google.com/favicon.ico")
 	await embed.addFooter(text="foot",icon_url="https://www.google.com/favicon.ico")
+	await embed.addThumbnail(url="https://google.com/favicon.ico")
 ```
 
 Sending an embed is as expected, you would include it in the `ctx.send()` or `ctx.reply()` function like this:
@@ -187,23 +192,45 @@ async def test(self,ctx:hummus.Message):
 
 ### Attachments
 
-Attachments are quite simple. Include the filepath, and Hummus.py will do the rest!
+Attachments are quite simple. Create a `File` object instance, and pass it through the `file` parameter in `ctx.send()` or `ctx.reply()`.
 
+A `File` object can take 4 different types of parameters. Here is a list of them and their examples:
+
+1. `str`: `file = hummus.File("path/to/file.here")`
+2. `io.BufferedReader`: `file = hummus.File(open("file.png","rb"))`
+3. `bytes`: `file = hummus.File(open("file.png","rb").read())` (`.read()` returns a `bytes` object)
+4. `BytesIO`: `file = hummus.File(BytesIO(b""))` (BytesIO accepts a `bytes` object, `File` gets it)
+
+A use case is the following:
 ```py
 class Commands(Client):
 async def test(self,ctx:hummus.Message):
-	await ctx.reply("its an image!",file="image.png")
+	await ctx.reply("its an image!",file=hummus.File("image.png"))
 ```
 
 **__Note:__ Embeds will be ignored if an attachment is passed!**
 
 ## Support
-I am LG125YT#2241 on Hummus, @ytlg on Discord, and @lg125yt on Replit.
+I am LG125YT#2241 on Hummus, @ytlg on Discord, LG125YT#3014 on Oldground, and @lg125yt on Replit. My email is lg125yt@gmail.com, but you might want to let me know somewhere else that you sent me an email.
 
 ## Roadmap
 Currently attempting to add all endpoints from the [Hummus API docs](https://hummus.sys42.net/developers/docs/intro) beginning with most important for bot development.
 
 ## Changelog
+
+Version 0.5.1:
+- No real changes, I'm just trying to fix the pypi issue where `import hummus` doesnt work. Also updating this file a little to be more up-to-date.
+
+Version 0.5.0:
+- You now need to upload files by creating a `File` object with your file in it. This allows for less cluttering in `message.py` for the `send` function, and it allows me to easily add more freedom to uploading files.
+- Continuation of above note, you can now provide a file path, `bytes` object, `BytesIO` object, or an `io.BufferedReader` object (the object you get when you assign a variable to `open("name.ext","rb")`)
+- All `Message` objects now have a `delete()` function, which sends a request to delete that message on Hummus. (Previously, we only had `deleteMessage(id)`, where you needed to provide a message ID to delete.)
+- For some reason, the v0.4.x versions have not been updating the `hummus` folder, and only the `hummus2016` folder. If it persists, consider switching all `from hummus import *` and `import hummus` to `from hummus2016 import *` and `import hummus2016`. This may also require changing some other lines, or you can use `import hummus2016 as hummus`.
+
+Version 0.4.1:
+- Updates in 0.4.0 didn't push for some reason lol. Here they are (again).
+- Turns out that the Image and Thumbnail objects *do* work, they just require `width` and `height` parameters that Hummus.py will automatically take care for you. Nothing has changed, you can continue uploading files as before.
+- Fixed bug not letting Hummus.py work, its just me forgetting to include headers when making the request to get the websocket url.
 
 Version 0.4.0:
 - Added embed support (Image and Thumbnail objects to not work on Hummus, so they are not included in Hummus.py)

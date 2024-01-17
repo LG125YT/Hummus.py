@@ -113,7 +113,7 @@ class Client:
       if status == None:
         status = "online"
       if url:
-        e = requests.get(url[:-3]+"/gateway",headers={"User-Agent":agent})
+        e = requests.get(url[:-3]+"/gateway",headers={'Authorization': f'Bot {bottoken}','Content-Type': 'application/json','User-Agent': agent}) #i do not care, shut up about "readability"
         if e.json().get('url'):
           websocket = e.json()['url']
       if cdn == None:

@@ -1,7 +1,7 @@
-from discord.channel import PartialMessageable
 from .member import User
 from .guild import Guild
 from .embed import Embed
+from .file import File
 import requests
 import json
 import asyncio
@@ -12,7 +12,10 @@ import string
 
 async def prepareEmbed(embed):
   prep_embed = {"title":embed.title,"description":embed.description,"color":embed.color,"url":embed.url,"timestamp":embed.timestamp,"fields":[]}
-  #embed image and thumbnail do not work on hummus
+  if embed.image:
+    prep_embed["image"] = {"url":embed.image.url,"width":embed.image.width,"height":embed.image.height}
+  if embed.thumbnail:
+    prep_embed["thumbnail"] = {"url":embed.thumbnail.url,"width":embed.thumbnail.width,"height":embed.thumbnail.height}
   if embed.footer:
     prep_embed["footer"] = {"text":embed.footer.text,"icon_url":embed.footer.icon_url}
   if embed.author:
@@ -56,6 +59,24 @@ class Message:
         self.author = User(data['author'],cdn,self.token,self.base_url,self.guild_id)
         self.cdn = cdn
 
+    async def typing(self):
+      headers = {
+        'Authorization': f'Bot {self.token}',
+        'Content-Type': 'application/json',
+        'User-Agent': self.agent
+      }
+      requests.post(f"{self.base_url}/channels/{self.channel}/typing",headers=headers) #returns 204
+
+    async def delete(self):
+      headers = {
+        'Authorization': f'Bot {self.token}',
+        'Content-Type': 'application/json',
+        'User-Agent': self.agent
+      }
+      e = requests.delete(url=f"{self.base_url}channels/{self.channel}/messages/{self.id}",headers=headers)
+      return e
+
+
     async def edit(self, content):
       headers = {
         'Authorization': f'Bot {self.token}',
@@ -72,29 +93,23 @@ class Message:
       else:
         return Message(r.json(),self.token,self.agent,self.base_url,self.cdn,self.instance,reply=False)
 
-    async def send(self, content=None, embed:Embed=None,file=None):
+    async def send(self, content=None, embed:Embed=None,file:File=None):
       if content == embed == file == None:
         raise Exception("Please inlcude either a message content, embed, or file.") #will be caught by the exception handler in main.py and formatted correctly
       if file: #purposefully prioritizes files over embeds
+        if type(file) != File:
+          raise Exception("Please pass a \"File\" object to the \"file\" parameter.")
         if embed:
           print("\033[91mIgnoring exception: Cannot send embed and file at the same time. Will send file only.\033[0m") #code does not need to stop, so no exception raised
-        #i kinda skidded most of this from fossbotpy dont kill me please
-        openedfile = open(file,"rb")
-        thing = (file, openedfile, 'image/png')
-        otherthing = {"attachments":thing}
-        headers = {
-        'Authorization': f'Bot {self.token}',
-        'Content-Type': 'multipart/form-data; boundary=418737004913864675834237162763',
-        'User-Agent': self.agent,
-        }
-        kind = filetype.guess(file)
-        mimetype, extensiontype, fd = kind.mime, kind.extension, b""
-        data = {'content': content,'tts':False,'file':{"filename":file,"Content-Type":"image/png"}}
-        fields = {"file":(file,open(file,'rb').read(),mimetype), "payload_json":(None,json.dumps(data))}
+        headers = file.headers
+        headers['Authorization'] = f'Bot {self.token}'
+        headers['User-Agent'] = self.agent
+        data = {'content': content,'tts':False,'file':file.file_json}
+        fields = file.fields
+        fields['payload_json'] = (None,json.dumps(data))
         data = MultipartEncoder(fields=fields,boundary='----WebKitFormBoundary'+''.join(random.sample(string.ascii_letters+string.digits,16)))
         headers['Content-Type'] = data.content_type
       else:
-        #this i did not skid, why would i, its so easy
         if embed:
           embed = await prepareEmbed(embed)
         headers = {
@@ -112,18 +127,12 @@ class Message:
       if content == embed == file == None:
         raise Exception("Please inlcude either a message content, embed, or file.")
       if file:
-        openedfile = open(file,"rb")
-        thing = (file, openedfile, 'image/png')
-        otherthing = {"attachments":thing}
-        headers = {
-        'Authorization': f'Bot {self.token}',
-        'Content-Type': 'multipart/form-data; boundary=418737004913864675834237162763',
-        'User-Agent': self.agent,
-        }
-        kind = filetype.guess(file)
-        mimetype, extensiontype, fd = kind.mime, kind.extension, b""
-        data = {'content': f'> {self.content} \n<@{self.author.id}> {content}','tts':False,'file':{"filename":file,"Content-Type":"image/png"}}
-        fields = {"file":(file,open(file,'rb').read(),mimetype), "payload_json":(None,json.dumps(data))}
+        headers = file.headers
+        headers['Authorization'] = f'Bot {self.token}'
+        headers['User-Agent'] = self.agent
+        data = {'content': f'> {self.content} \n<@{self.author.id}> {content}','tts':False,'file':file.file_json}
+        fields = file.fields
+        fields['payload_json'] = (None,json.dumps(data))
         data = MultipartEncoder(fields=fields,boundary='----WebKitFormBoundary'+''.join(random.sample(string.ascii_letters+string.digits,16)))
         headers['Content-Type'] = data.content_type
       else:

@@ -9,6 +9,7 @@ from .message import *
 from .permissions import *
 from .role import *
 from .embed import *
+from .file import *
 
 #so the idiots who made py-right extended dont have to be harassed even more because of "could not find [random attrubute] in 'hummus'"
 
