@@ -119,6 +119,21 @@ Existing moderation commands you can use:
 
 Hummus's API is very unfinished, which means fetching a guild member with the endpoint doesn't exist, as is with many other endpoints. Therefore, Hummus.py has to rely on login information for necessary info such as role permissions. Because I am lazy and don't know how Hummus/Discord's permissions integers works, Hummus.py now uses Discord.py as a dependency (it has a needed permissions function). However, this is mainly a package process, which means you don't need to manually import Discord.py in your main bot code, you just need to have it installed.
 
+### Editing Channel Permissions
+
+You can modify channel permissions like so. The code below adds "mention everyone" permissions to a role.
+
+```py
+	async def pingEveryone(self,ctx:hummus.Message,role:hummus.Role):
+		overwrite = PermOverwrites(role)
+		overwrite.allow.mention_everyone = True
+		e = await ctx.channel.changePerms(role,overwrite)
+		print(e)
+		await ctx.send("@everyone")
+```
+
+Note: Only using the above code is not recommended, it does **not** have permissions checking. See the section directly above this section on permissions checking.
+
 ### Events
 
 You can use events to execute code, as demonstrated below.
@@ -217,6 +232,25 @@ I am LG125YT#2241 on Hummus, @ytlg on Discord, LG125YT#3014 on Oldground, and @l
 Currently attempting to add all endpoints from the [Hummus API docs](https://hummus.sys42.net/developers/docs/intro) beginning with most important for bot development.
 
 ## Changelog
+
+Version 0.6.0:
+- `AllGuild` now inherits from `Guild` instead of making a `Guild` attribute in the class.
+- New `Channel` and `Emoji` objects exist, which arw available in an `AllGuild` object. `PermOverwrites` is also a new object that you can create instances of to edit channel permissions.
+- ~~All~~ Most events are added. In the middle of this update, banning has been added to Hummus and Oldground, and the events and functions do not exist for it yet.
+- Hummus.py now supports catching websocket errors, and auto-restarts if an error occurs (such as heartbeat expiring).
+- `fullPermsCheck()` now correctly checks for server owner ID before returning whether the user has a specific permission.
+- `Channel` object attributes now have support for both voice and text channels.
+- `User` and `Member` now have role-related functions (`addRoles`, `removeRoles`, and `setRoles`)
+- Many of these new objects have a `toDict()` function, however, this should be mainly internal.
+- `Message` objects now have a `guild` and `channel` attribute containing the entire `Guild` and `Channel` objects (respectively). The old attributes that only had the ID are now called `guild_id` and `channel_id`.
+- `getGuildChannels()` exists as a function in a `Message` object.
+- The `Permissions` object now supports empty/fake role creation and the creation of a role with only a permissions integer.
+- The `Role` object now has a `Permissions` object for their `permissions` attribute.
+- The `bottoken` parameter name has been changed to `token` when creating a `Client`/`Commands` object.
+- Hummus.py will now get the cdn url from the base url provided, no need to provide a cdn url when creating a `Client`/`Commands` object now.
+
+Version 0.5.2:
+- Again, no real changes to hummus.py, but I'm pretty sure I figured out how to fix the previous error. Also, `hmus` exists as a mirror package now if you don't want to type in `hummus2016.py` to install the package.
 
 Version 0.5.1:
 - No real changes, I'm just trying to fix the pypi issue where `import hummus` doesnt work. Also updating this file a little to be more up-to-date.
