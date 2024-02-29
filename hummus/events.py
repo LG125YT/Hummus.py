@@ -11,10 +11,10 @@ class Events:
   async def on_message_delete(self, message_id, channel_id, guild_id):
     pass
 
-  def on_message_delete_bulk(self, channel, messages):
+  async def on_message_update(self, message, author):
     pass
 
-  async def on_message_update(self, message, author):
+  async def on_presence_update(self, before, presence):
     pass
 
   async def on_guild_member_add(self, guild, member):
@@ -23,41 +23,38 @@ class Events:
   async def on_guild_member_remove(self, guild, member): #unlike other events, a member object actually gets passed through! discord is not being obscure with info for once!?!?!?
     pass
 
-  def on_member_update(self, guild, before, after):
+  async def on_guild_member_update(self, before, after):
     pass
 
   async def on_guild_create(self, guild):
     pass
 
-  def on_guild_join(self, guild):
-    pass
-
   async def on_guild_delete(self, guild):
     pass
 
-  def on_guild_update(self, bot, before, after):
+  async def on_guild_update(self, before, after):
     pass
 
-  def on_guild_role_create(self, bot, role):
+  async def on_guild_role_create(self, guild_id, role):
     pass
 
-  def on_guild_role_delete(self, bot, role):
+  async def on_guild_role_delete(self, guild_id, role):
     pass
 
-  def on_guild_role_update(self, bot, before, after):
+  async def on_guild_role_update(self, guild_id, before, after):
     pass
 
-  def on_guild_emojis_update(self, bot, guild, before, after):
+  async def on_guild_emojis_update(self, before, after): #emoji object contains guild ID
     pass
 
-  def on_typing_start(self, bot, channel, user, when):
+  async def on_typing_start(self, channel, user, when):
     pass
 
-  def on_channel_create(self, bot, channel):
+  async def on_channel_create(self, channel):
     pass
 
-  def on_channel_delete(self, bot, channel):
+  async def on_channel_delete(self, channel):
     pass
 
-  def on_channel_update(self, bot, before, after):
+  async def on_channel_update(self, before, after):
     pass

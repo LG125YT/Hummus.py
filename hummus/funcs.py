@@ -7,7 +7,7 @@ from .role import FakeRole
 
 async def checkPerms(ctx,allGuilds,perm):
   for guild in allGuilds:
-    if guild.guild.id == ctx.guild_id:
+    if guild.id == ctx.guild_id:
       selected = guild
   gmember = await ctx.getGuildUser(ctx.author.id)
   for mrole in gmember.roles:
@@ -15,6 +15,8 @@ async def checkPerms(ctx,allGuilds,perm):
       if role.id == mrole:
         temp = Permissions(role)
         try:
+          if getattr(temp,"administrator"):
+            return True
           return getattr(temp, perm)
         except AttributeError:
           raise AttributeError(f"{perm} is not a valid permission!")
@@ -27,7 +29,7 @@ async def getRole(role_id,guild:AllGuild):
 
 async def checkPositions(user1:Member,user2:Member,allGuilds):
   for guild in allGuilds:
-    if guild.guild.id == user1.guild:
+    if guild.id == user1.guild:
       selected = guild
   if len(user1.roles) > 0:
     highest1 = await getRole(user1.roles[0],selected)
@@ -50,6 +52,11 @@ async def checkPositions(user1:Member,user2:Member,allGuilds):
   return highest1.position < highest2.position
 
 async def fullPermsCheck(ctx,instance,perm,target_id=None):
+    if ctx.guild_id:
+      for guild in instance.allGuilds:
+        if guild.id == ctx.guild_id:
+          if guild.owner_id == ctx.author.id:
+            return True
     perms = await checkPerms(ctx,instance.allGuilds,perm)
     if perms:
       if target_id is not None:
