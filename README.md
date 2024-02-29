@@ -6,9 +6,6 @@ This is an asynchronous wrapper currently in version 0.6.0!
 
 You can do `pip install hummus2016.py` to install Hummus.py as a package, or you can import it manually by downloading the files at [the GitLab repository](https://gitlab.com/lg125yt/hummus.py)
 
-# Notice:
-For some reason, PyPi is not downloading the `hummus` folder correctly, so it is best to replace `import hummus` with `import hummus2016 as hummus` and `from hummus ...` with `from hummus2016 ...`. This only applies if youre using pip to install Hummus.py. This file will remain unchanged though.
-
 ## Getting started
 
 You can use the following code in the main file to connect to Hummus:
