@@ -1,47 +1,83 @@
-from requests_toolbelt import MultipartEncoder
+from typing import *
 import tempfile
 import filetype
-import random
-import string
-import json
+import requests
 import io
 
 class File:
-	def __init__(self,file):
+	def __init__(self,file:Union[str,bytes,io.BufferedReader,io.BytesIO],file_name:str="file",empty:bool=False):
+		self.empty = empty
+		if empty:
+			return
 		read = None
 		filename = None
-		thing = None
+		thing = None #me smol brain hav no idea what to name
 
 		if type(file) == io.BufferedReader:
 			file = file.read() #the lines below should rake care of the rest
 
-		if type(file) == bytes:
+		elif type(file) == bytes:
 			with tempfile.NamedTemporaryFile(delete=True) as temp_file:
 				temp_file.write(file)
 				kind = filetype.guess(temp_file.name)
-			filename = f"image.{kind.extension}"
-			thing = (filename, file, kind.mime)
+			filename = file_name
 			read = file
+			if not kind:
+				thing = (file, read, 'unsupported')
+			else:
+				thing = (file, read, kind.mime)
+				filename += f".{kind.extension}"
 
-		if type(file) == str:
+		elif type(file) == str:
 			openedfile = open(file,"rb")
-			kind = filetype.guess(file)
 			read = openedfile.read()
+			kind = filetype.guess(file)
 			filename = file.split("/")[-1]
-			thing = (file, read, kind.mime)
+			thing = (file, read, 'unsupported') if not kind else (file, read, kind.mime)
 
-		if type(file) == io.BytesIO:
+		elif type(file) == io.BytesIO:
 			kind = filetype.guess(file.getvalue())
-			filename = f"image.{kind.extension}"
+			filename = file_name
 			read = file.getvalue()
-			thing = (filename,read, kind.mime)
+			if not kind:
+				thing = (file, read, 'unsupported')
+			else:
+				thing = (file, read, kind.mime)
+				filename += f".{kind.extension}"
 
-		self.headers = {
-		'Content-Type': 'multipart/form-data; boundary=418737004913864675834237162763',
-		} #this will be filled with token and useragent before message send
-		self.file_json = {"filename":filename,"Content-Type":"image/png"}
-		self.fields = {"file":thing,"payload_json":None} #"payload_json" will also be filled later along with token and useragent
-		fakedata = {'content': "",'tts':False,'file':self.file_json}
-		fakefields = {"file":thing,"payload_json":json.dumps(fakedata)}
-		self.data = MultipartEncoder(fields=fakefields,boundary='----WebKitFormBoundary'+''.join(random.sample(string.ascii_letters+string.digits,16)))
-		self.headers['Content-Type'] = self.data.content_type
+		else:
+			from .utils import Exceptions
+			raise Exceptions.FileError(f"Invalid file type: {type(file)}. Please pass a file object, bytes, BytesIO or string.")
+
+		self.fields = {"file":thing,"payload_json":None}
+
+	async def get_file_data(self) -> bytes:
+		if self.empty:
+			return #type:ignore
+		return self.fields['file'][1]
+
+class Attachment:
+	def __init__(self,data,instance):
+		self.instance = instance
+		self.id:str = data['id']
+		self.filename:str = data['filename']
+		self.size:int = data['size']
+		self.url:str = data['url']
+		self.proxy_url:str = data['proxy_url']
+		self.height:int = data.get('height')
+		self.width:int = data.get('width')
+
+class Icon: #guild icon, user avatar, banner, etc
+	def __init__(self,data,type,instance,is_user=False):
+		from .utils import Enums #haha i love circular import errors!
+		self.instance = instance
+		self.object_id:str = data['id']
+		self.id:str = data.get(type)
+		self.url:Union[str,None] = f"{instance.cdn+type}s/{self.object_id}/{self.id}.gif"
+		e = requests.get(self.url)
+		if e.status_code == 404: #url is not a gif
+			self.url = f"{instance.cdn+type}s/{self.object_id}/{self.id}.png" #default to png
+		if not self.id:
+			self.url = None
+			if is_user:
+				self.url = Enums.DefaultAvatars.all[int(data['discriminator'])%5]

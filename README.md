@@ -1,234 +1,87 @@
 # Hummus.py
 
-This is an asynchronous wrapper currently in version 0.6.0!
+This is an asynchronous wrapper currently in version 1.0.0!
 
 ## Installation
 
-You can do `pip install hummus2016.py` to install Hummus.py as a package, or you can import it manually by downloading the files at [the GitLab repository](https://gitlab.com/lg125yt/hummus.py)
+You can do `pip install hummus2016.py` to install Hummus.py as a package (you can also use its mirror package, `hmus`), or you can import it manually by downloading the files at [the GitLab repository.](https://gitlab.com/lg125yt/hummus.py)
 
 ## Getting started
 
 You can use the following code in the main file to connect to Hummus:
 ```py
 import hummus
-from hummus import Client
 import asyncio
 
-class Commands(Client):
-	async def test(self,ctx:hummus.Message):
-		print(ctx.content)
-		await ctx.reply(f"<@{ctx.author.id}> activated test!")
+class Client(hummus.Client):
+	async def on_ready(self,bot):
+		print(f"Logged in as {bot.user.username}#{bot.user.discriminator}")
 
-Client = Commands(prefix="!",bottoken="INSERT TOKEN HERE", status="online", game="!test")
+	async def on_message_create(self,message):
+		if message.author.id == self.user.id or message.author.bot:
+			return
+		if "ping" in message.content.lower():
+			await message.send("pong")
 
-asyncio.run(Client.RUN())
+bot = Client(token="BOT_TOKEN_HERE")
+
+asyncio.run(bot.run())
 ```
 
-Adding new commands is as simple as creating new functions under the `Commands` class. No need for decorators, just because. Adding custom arguments is as simple as adding parameters in a function, as seen below (remember: In every function, you must have the `self` and `ctx` args!):
+If you don't want to use `on_message_create` in an inherited `Client` class to detect for commands, you can import `Commands` from `hummus.utils` and create functions under that. (remember: In every function, you must have the `self` and `ctx` parameters!):
 
 ```py
-class Commands(Client):
-	async def test(self,ctx:hummus.Message,test=None): #extra "test" arg
-		print(test)
-		print(ctx.content)
-		await ctx.reply(f"{ctx.author.mention} activated test! Arg 1: {test}") #you can also do "<@{ctx.author.id}>" if you want
+from hummus.utils import Commands
+
+class Cmds(Commands):
+	async def test(self,ctx):
+		await ctx.reply("test!")
 ```
 
-You can make these parameters have annotations (`test: str` or `mention: hummus.User`) or have default values (`test=None`).
+For more information, please refer to our Readthedocs page (coming soon).
 
-## Arguments
+## Other important notes
 
-There are 2 ways to have arguments in a Hummus.py command:
-1. Add extra arguments to your function
-2. Use `.split(" ")` to split words in a command into different items on a list
+### Features
 
-Custom arguments in a function will function differently than using `.split(" ")`. The argument system looks for quotation marks in a message, and if there is text within quotation marks, no matter if there are spaces, the entire text (within the quotations!) will be considered as a **single** argument. This allows for easier usage of commands like `!nickname` where you can specify a nickname with spaces, as long as the nickname is within quotation marks.
+**Please** read the official documentation, which can be found at our Readthedocs page (coming soon). If you still need help, look below for ways to contact me.
+
+### Support
+I am LG125YT#2241 on Hummus, @ytlg on Discord, and @lg125yt on Replit. My email is lg125yt@gmail.com, but you might want to let me know somewhere else that you sent me an email.
+
+### Arguments
+
+When adding parameters to command functions in an inherited `Commands` object, argument splitting will work a little different from other packages.
+
+The argument system looks for quotation marks in a message, and if there is text within quotation marks, no matter if there are spaces, the entire text (within the quotations!) will be considered as a **single** argument. This allows for easier usage of commands like `!nickname` where you can specify a nickname with spaces, as long as the nickname is within quotation marks (See documentation on how to disable this).
 
 Quotation marks are not necessary for arguments with no spaces!
 
-## Usage
+## Credits
+ - [Fossbotpy](https://gitlab.com/arandomnewaccount/fossbotpy) by arandomnewaccount, used parts of it in in `hummus.utils.Enums.Colors` and `hummus.File` processing.
+ - [Discord.py](https://github.com/rapptz/discord.py) by Rapptz, used in `hummus.Permissions` and related permissions functionality.
+ - LmTechyTEMOG's contributions and testing for version 1.0.0 of this package, he helped make the development of v1.0.0 faster.
 
-### Commands
+### Changelog
 
-Hummus.py is in development, so it will not have all the functions existing. Also, please note that the Hummus API itself is unfinished and is missing endpoints, so I cannot have every function either.
-
-Here's an example on how to use the `ctx.getUser()` function where you can get any user with their ID:
-
-Without parameter and annotation:
-```py
-class Commands(Client):
-	async def avatar(self,ctx:hummus.Message):
-		if len(ctx.mentions) > 0:
-			member = ctx.getUser(ctx.mentions[0].id)
-			await ctx.reply(member.avatar.url)
-		else:
-			await ctx.reply(ctx.author.avatar.url)
-```
-
-With parameter and annotation:
-```py
-class Commands(Client):
-	async def avatar(self,ctx:hummus.Message,mention:hummus.User=None):
-		if mention: #"None" is equivalent to "False"
-			await ctx.reply(mention.avatar.url)
-		else:
-			await ctx.reply(ctx.author.avatar.url)
-```
-
-As you can see, the above code fetches a member based on the first mention that is in the recieved command, and uses the Member object to get their avatar url.
-
-### Moderation Commands (or commands requiring permissions)
-
-You can get access to Hummus.py's permissions checking feature with `from hummus.funcs import fullPermsCheck`. Its arguments are the `Message` object you recieve on command, your class instance aka `self`, the permission you want to check, and **optionally,** the target user ID to compare permissions with. What the `fullPermsCheck()` function does is that it checks to see if the user has the required permission, and it also checks whether it has a higher role than the target ID when specified (permissions comparing). You would use the function like this:
-
-```py
-perms = await fullPermsCheck(ctx,self,"kick_members",ctx.mentions[0]) #assume this is in a command function
-```
-
-The code would return a `bool` object which you could use to verify that the user executing the command has the required permissions.
-
-So, for commands that require permissions such as kicking members, the **optimal** code would be the following:
-
-```py
-class Commands(Client):
-	async def kick(self,ctx:hummus.Message,mention:hummus.User=None):
-		if not mention:
-			await ctx.reply("Please mention a user to kick them.")
-			return
-		perms = await fullPermsCheck(ctx,self,"kick_members",mention)
-		member = await ctx.getUser(mention)
-		if perms:
-			e = await member.kick()
-			if e.staus_code == 200 or e.status_code == 204: #i dont remember which status code it is lol
-				await ctx.reply(f"i have kicked <@{member.id}>!")
-			else:
-				await ctx.reply(f"Error kicking user. Status code: {e.status_code}")
-		else:
-			await ctx.reply(f"You do not have the perms to kick {member.user.username}!")
-```
-
-Existing moderation commands you can use:
-- `member.kick()`
-- `member.nick()`
-- `ctx.deleteMessage()`
-- `ctx.bulkDelete()`
-- `ctx.delete()`
-
-Hummus's API is very unfinished, which means fetching a guild member with the endpoint doesn't exist, as is with many other endpoints. Therefore, Hummus.py has to rely on login information for necessary info such as role permissions. Because I am lazy and don't know how Hummus/Discord's permissions integers works, Hummus.py now uses Discord.py as a dependency (it has a needed permissions function). However, this is mainly a package process, which means you don't need to manually import Discord.py in your main bot code, you just need to have it installed.
-
-### Editing Channel Permissions
-
-You can modify channel permissions like so. The code below adds "mention everyone" permissions to a role.
-
-```py
-	async def pingEveryone(self,ctx:hummus.Message,role:hummus.Role):
-		overwrite = PermOverwrites(role)
-		overwrite.allow.mention_everyone = True
-		e = await ctx.channel.changePerms(role,overwrite)
-		print(e)
-		await ctx.send("@everyone")
-```
-
-Note: Only using the above code is not recommended, it does **not** have permissions checking. See the section directly above this section on permissions checking.
-
-### Events
-
-You can use events to execute code, as demonstrated below.
-
-```py
-from hummus import Events
-
-class Events(Events):
-	async def on_message_create(self, message): #activates every time a message is sent in a channel a bot can see
-		if message.content.startswith("ping"):
-			await message.reply("pong")
-```
-
-Make sure to put this in your main file, before your `Client` class. You will also want to "listen" for this class before running the `Client` class, as shown below:
-
-```py
-Client = Commands(prefix="!", bottoken=token, status="online", game="!test")
-
-async def bot():
-	await Client.LISTEN(Events())
-	await Client.RUN()
-
-asyncio.run(bot())
-```
-
-Events are a WIP, expect some bugs and a **lot** of missing events.
-
-### Embeds
-
-You can create an embed object by importing the `Embed` class from `hummus`.
-
-```py
-from hummus import Embed
-
-class Commands(Client):
-async def test(self,ctx:hummus.Message):
-	embed = Embed(title="Test",description="something")
-```
-
-The `Embed` class supports 4 parameters: `title`, `description`, `color`, and `timestamp`. The `color` parameter uses Discord's integer colors, view the list [here.](https://gist.github.com/thomasbnt/b6f455e2c7d743b796917fa3c205f812) The `timestamp` parameter uses the ISO8601 format (what Hummus accepts), so here's the code to get the current time in that format.
-
-```py
-from datetime import datetime,timezone
-current_time_utc = datetime.now(timezone.utc)
-formatted_timestamp = current_time_utc.isoformat()
-```
-
-You can add attributes to the embed such as fields, footers, a thumbnail, an image, or an author like this:
-
-```py
-class Commands(Client):
-async def test(self,ctx:hummus.Message):
-	embed = Embed(title="Test",description="something")
-	await embed.addField(name="field title",value="field value")
-	await embed.addAuthor(name="author",url="https://google.com/",icon_url="https://www.google.com/favicon.ico")
-	await embed.addFooter(text="foot",icon_url="https://www.google.com/favicon.ico")
-	await embed.addThumbnail(url="https://google.com/favicon.ico")
-```
-
-Sending an embed is as expected, you would include it in the `ctx.send()` or `ctx.reply()` function like this:
-
-```py
-class Commands(Client):
-async def test(self,ctx:hummus.Message):
-	embed = Embed(title="Test",description="something")
-	await embed.addField(name="field title",value="field value")
-	await ctx.reply("its an embed!",embed=embed)
-```
-
-**__Note:__ Embeds will be ignored if an attachment is also passed!**
-
-### Attachments
-
-Attachments are quite simple. Create a `File` object instance, and pass it through the `file` parameter in `ctx.send()` or `ctx.reply()`.
-
-A `File` object can take 4 different types of parameters. Here is a list of them and their examples:
-
-1. `str`: `file = hummus.File("path/to/file.here")`
-2. `io.BufferedReader`: `file = hummus.File(open("file.png","rb"))`
-3. `bytes`: `file = hummus.File(open("file.png","rb").read())` (`.read()` returns a `bytes` object)
-4. `BytesIO`: `file = hummus.File(BytesIO(b""))` (BytesIO accepts a `bytes` object, `File` gets it)
-
-A use case is the following:
-```py
-class Commands(Client):
-async def test(self,ctx:hummus.Message):
-	await ctx.reply("its an image!",file=hummus.File("image.png"))
-```
-
-**__Note:__ Embeds will be ignored if an attachment is passed!**
-
-## Support
-I am LG125YT#2241 on Hummus, @ytlg on Discord, LG125YT#3014 on Oldground, and @lg125yt on Replit. My email is lg125yt@gmail.com, but you might want to let me know somewhere else that you sent me an email.
-
-## Roadmap
-Currently attempting to add all endpoints from the [Hummus API docs](https://hummus.sys42.net/developers/docs/intro) beginning with most important for bot development.
-
-## Changelog
+Hummus.py v1.0.0:
+- Package revamp, it should now much easier to work on this and make projects using this package. **Please note that updating from a version before this will break your project until you make the proper revisions.** The following notes will explain all the changes made. **Please refer to the [official docs] for more specific usage explanations.**
+- New `utils` folder, there's probably some stuff from there you might want to import to make bot development easier. Some of them are explained below.
+- Commands and events have moved around. You will need to import `Commands` from `hummus.utils`, and inherit that class and add commands there. An inherited `Client` class now serves only for events. Class initialization for both `Client` and `Commands` has therefore changed, please refer to the docs for more information.
+- Aliases have been added as an optional decorator for commands, import from `hummus.utils`, refer to docs for usage.
+- Some exceptions are now customizable via inheritance, import `CustomizableExceptions` from `hummus.utils`, and refer to the docs for usage.
+- Status updates now require passing an instance of the `CustomStatus` class, which can simply be imported from `hummus`.
+- `Enums` now exists (import from `hummus.utils`), there is a section in them for presences and another for status types.
+- Hummus.py now uses threading. Why I didn't add it before, I have no idea, but bots should be able to process multiple commands at once now, yay.
+- New `Context` object, contains a `Message` object, `state` attribute containing the `Client` instance active (the same attribute is referred to as `instance` in every other object it exists in), and an `HTTP` object (found in `http.py`) where you can perform every available HTTP request to Hummus.
+- `Guild` has been renamed to `PartialGuild`, and `allGuild` has been renamed to `Guild`. All objects now have the `instance` attribute, containing the active `Client` instance. The `allGuilds` attribute (that contained a list of `AllGuild`, now `Guild`, objects), has been renamed to `guilds`.
+- A `Client` instance now has a `state` attribute containing a `Ready` object with data recieved on the `READY` event. However, the list of guilds is a list of IDs (guilds recieved on `READY` are marked as unavailable because guilds are loaded through `GUILD_CREATE` events) since you already have access to the list of guilds the client is in through `Client.guilds`. The `Client` instance also has a new `user` attribute, which is the data you recieve on the account you log into on `READY`, can also be obtained through `ready.user`.
+- There is no more `funcs.py`, any sort of permissions checking is now done through a `Member` or `Role` object.
+- `User` objects now have a `getGuildMember()` function, returns a `Member` object of the user only if the `User` object has a non-`None` guild ID attribute.
+- Objects now have all available functions respective to their nature (please refer to the docs for a list of them and specifics on their usage), anything HTTP-related calls the necessary function from the HTTP object found in `http.py`.
+- Added `hummus.Member` as a working type annotation when making a command, will raise exception if mentioned user is not in guild or if the argument is not a mention.
+- Added `bool` as a working type annotation, should be self-explanatory.
+- There's likely something I'm forgetting, however, in-depth usage examples and explanations of Hummus.py will be provided in the documentation. Thanks for reading this.
 
 Version 0.6.0:
 - `AllGuild` now inherits from `Guild` instead of making a `Guild` attribute in the class.
@@ -290,10 +143,10 @@ Version 0.3.0:
 - The `Author` class has been renamed to the `User` class because most use cases within the package do not reflect the "Author" status of a user (this should not affect much of anything since annotations did not work before this update)
 
 
-Too lazy to like do anything from before, if you want to do it for me, go for it.
+Too lazy to log changes from before, if you want to do it for me, go for it.
 
 ## Contributing
-Contribute if you want, you can make a pull request on the [GitLab repository](https://gitlab.com/lg125yt/hummus.py), comment on the [Replit project.](https://replit.com/@LG125YT/Classes-or-something-ig#main.py) Note that the Replit project is the most recent version of Hummus.py, because it is where I test new features. You can see upcoming features on the Replit project if you want.
+Contribute if you want, you can make a pull request on the [GitLab repository](https://gitlab.com/lg125yt/hummus.py) or [GitHub repository](https://github.com/lg125yt/hummus.py), or fork the [Replit project.](https://replit.com/@LG125YT/Hummuspy?v=1) Note that the Replit project is the most recent version of Hummus.py, because it is where I test new features. You can see upcoming features on the Replit project if you want.
 
 ## Authors
-This wrapper was made by LG125YT. Contact me on Hummus (LG125YT#2241) or Discord (@ytlg)
+This wrapper was made by LG125YT. Contact me on Hummus (LG125YT#2241) or Discord (@ytlg).
