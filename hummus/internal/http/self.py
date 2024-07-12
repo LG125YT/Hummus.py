@@ -34,3 +34,17 @@ class hSelf:
 		s = HTTPStatus(r)
 		if not s.success:
 			raise s.exception(s.reason)
+
+	async def block(self,user_id:str) -> None:
+		from ... import HTTPStatus
+		r = self.s.put(f"{self.instance.base_url}users/@me/relationships/{user_id}",json={"type":2})
+		s = HTTPStatus(r)
+		if not s.success:
+			raise s.exception(s.reason)
+
+	async def remove_relationship(self,user_id:str) -> None: # this is supposed to bhe unblock | uh sir ever heard of removing friends? | this was the request to unblock somone
+		from ... import HTTPStatus
+		r = self.s.delete(f"{self.instance.base_url}users/@me/relationships/{user_id}")
+		s = HTTPStatus(r)
+		if not s.success:
+			raise s.exception(s.reason)

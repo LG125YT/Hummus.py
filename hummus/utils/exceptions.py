@@ -5,26 +5,26 @@ class Exceptions:
 	#customizable
 	class InvalidInteger(Exception):
 		pass
-	
+
 	class InvalidBoolean(Exception):
 		pass
-	
+
 	class InvalidRole(Exception):
 		pass
-	
+
 	class InvalidMention(Exception):
 		pass
-	
+
 	class InvalidChannel(Exception):
-		pass
-	
-	class FileError(Exception):
 		pass
 
 	class MissingArguments(Exception):
 		pass
 
 	#not customizable
+	class FileError(Exception):
+		pass
+
 	class InvalidPermission(Exception):
 		pass
 
@@ -51,19 +51,20 @@ class Exceptions:
 class CustomizableExceptions:
 	#type conversion exceptions
 	async def onInvalidInteger(self,arg:str,context:Context) -> None:
-		raise Exceptions.InvalidInteger(f"Ignoring exception: Provided argument '{arg}' is not an integer.")
+		raise Exceptions.InvalidInteger(f"Provided argument '{arg}' is not an integer.")
 
 	async def onInvalidBoolean(self,arg:str,context:Context) -> None:
-		raise Exceptions.InvalidBoolean(f"Ignoring exception: Provided argument '{arg}' is not a boolean.")
+		raise Exceptions.InvalidBoolean(f"Provided argument '{arg}' is not a boolean.")
 
 	async def onInvalidRole(self,arg:str,context:Context) -> None:
-		raise Exceptions.InvalidRole(f"\033[91mIgnoring exception: Provided argument '{arg}' is not a role mention.\033[0m")
+		raise Exceptions.InvalidRole(f"Provided argument '{arg}' is not a role mention.\033[0m")
 
 	async def onInvalidMention(self,arg:str,context:Context) -> None:
-		raise Exceptions.InvalidMention(f"\033[91mIgnoring exception: Provided argument '{arg}' is not a mention.\033[0m")
+		raise Exceptions.InvalidMention(f"Provided argument '{arg}' is not a mention.\033[0m")
 
 	async def onInvalidChannel(self,arg:str,context:Context) -> None:
-		raise Exceptions.InvalidChannel(f"\033[91mIgnoring exception: Provided argument '{arg}' is not a channel.\033[0m")
+		raise Exceptions.InvalidChannel(f"Provided argument '{arg}' is not a channel.\033[0m")
 
+	#when user dont know how to use command
 	async def onMissingArguments(self,args:list[str],context:Context) -> None:
-		raise Exceptions.MissingArguments(f"\033[91mIgnoring exception: Arguments '{', '.join(args)}' are missing from message.\033[0")
+		raise Exceptions.MissingArguments(f"Argument(s) \"{', '.join(args)}\" are missing from message.\033[0")

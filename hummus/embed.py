@@ -9,7 +9,7 @@ def getDimensions(image_url):
 	if response.status_code == 200:
 		img = openImage(BytesIO(response.content))
 		width, height = img.size
-		return width, height
+		return width, height, True
 	else:
 		raise Exception(f"Failed to retrieve image from URL. Status code: {response.status_code}")
 
@@ -33,16 +33,22 @@ class EmbedAuthor:
 class Thumbnail:
 	def __init__(self,url,width=None,height=None):
 		self.url = url
-		if not width:
-			self.width,self.height = getDimensions(url)
-		else:
-			self.width = width
-			self.height = height
+		self.width = width
+		self.height = height
+		self.available = False
+
+	async def getDimensions(self):
+		self.width,self.height,self.available = getDimensions(self.url)
 
 class Image:
 	def __init__(self,url):
 		self.url = url
-		self.width,self.height = getDimensions(url)
+		self.width = None
+		self.height = None
+		self.available = False
+
+	async def getDimensions(self):
+		self.width,self.height,self.available = getDimensions(self.url)
 
 class Provider:
 	def __init__(self,data):
@@ -52,11 +58,12 @@ class Provider:
 class Video:
 	def __init__(self,url,width=None,height=None):
 		self.url = url
-		if not width:
-			self.width,self.height = getDimensions(url)
-		else:
-			self.width = width
-			self.height = height
+		self.width = width
+		self.height = height
+		self.available = False
+
+	async def getDimensions(self):
+		self.width,self.height,self.available = getDimensions(self.url)
 
 class Embed:
 	def __init__(self,title:str,description:str,color:int=0,url:Union[str,None]=None,timestamp:Union[str,None]=None):

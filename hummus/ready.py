@@ -46,6 +46,6 @@ class Application:
 		self.id:str = data['id']
 		self.name:str = data['name']
 		self.description:str = data['description']
-		self.icon:Icon = Icon(data['icon'],"icon",instance,True)
+		self.icon:Icon = Icon(data,"icon",instance,True)
 		self.bot_public:bool = data['bot_public']
 		self.bot_require_code_grant:bool = data['bot_require_code_grant']

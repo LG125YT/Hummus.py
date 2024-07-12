@@ -163,11 +163,11 @@ class hChannel:
 		if s.success:
 			return Channel(r.json(),self.instance)
 		else:
-			raise Exception(s.reason)
+			raise s.exception(s.reason)
 
 	async def leave_gc(self,id:str) -> None:
 		from ... import HTTPStatus
 		r = self.s.delete(f"{self.instance.base_url}channels/{id}")
 		s = HTTPStatus(r)
 		if not s.success:
-			raise Exception(s.reason)
+			raise s.exception(s.reason)

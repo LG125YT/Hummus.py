@@ -10,7 +10,7 @@ class hUser:
 		r = self.s.get(url=f"{self.instance.base_url}users/{id}/")
 		s = HTTPStatus(r)
 		if s.success:
-			return User(self.instance,r.json())
+			return User(r.json(),self.instance)
 		else:
 			raise s.exception(s.reason)
 

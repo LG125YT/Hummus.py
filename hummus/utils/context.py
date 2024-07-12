@@ -10,10 +10,12 @@ from typing import *
 class Context:
 	def __init__(self,data,instance):
 		from ..http import HTTP
-		self.state = instance
+		self.instance = instance
 		self.message:Message = data
 		self.channel:Channel = data.channel
 		self.guild:Union[Guild,None] = data.guild
+		self.guild_id:str = data.guild_id
+		self.channel_id:str = data.channel_id
 		self.author:User = data.author
 		self.http:HTTP = instance.http
 		self.typing:Typing = Typing(self.channel)

@@ -2,6 +2,8 @@
 
 This is an asynchronous wrapper currently in version 1.0.0!
 
+You can read the official documentation. It is unfinished, so you can currently find it in the `docs` folder of the [Github](https://github.com/LG125YT/Hummus.py) or [Gitlab](https://gitlab.com/lg125yt/hummus.py) repository. We will have a ReadTheDocs page soon.
+
 ## Installation
 
 You can do `pip install hummus2016.py` to install Hummus.py as a package (you can also use its mirror package, `hmus`), or you can import it manually by downloading the files at [the GitLab repository.](https://gitlab.com/lg125yt/hummus.py)
@@ -44,7 +46,7 @@ For more information, please refer to our Readthedocs page (coming soon).
 
 ### Features
 
-**Please** read the official documentation, which can be found at our Readthedocs page (coming soon). If you still need help, look below for ways to contact me.
+**Please** read the official documentation. It is unfinished, so you can currently find it in the `docs` folder of the [Github](https://github.com/LG125YT/Hummus.py) or [Gitlab](https://gitlab.com/lg125yt/hummus.py) repository. If you still need help, look below for ways to contact me.
 
 ### Support
 I am LG125YT#2241 on Hummus, @ytlg on Discord, and @lg125yt on Replit. My email is lg125yt@gmail.com, but you might want to let me know somewhere else that you sent me an email.
@@ -64,7 +66,7 @@ Quotation marks are not necessary for arguments with no spaces!
 
 ### Changelog
 
-Hummus.py v1.0.0:
+Version 1.0.0:
 - Package revamp, it should now much easier to work on this and make projects using this package. **Please note that updating from a version before this will break your project until you make the proper revisions.** The following notes will explain all the changes made. **Please refer to the [official docs] for more specific usage explanations.**
 - New `utils` folder, there's probably some stuff from there you might want to import to make bot development easier. Some of them are explained below.
 - Commands and events have moved around. You will need to import `Commands` from `hummus.utils`, and inherit that class and add commands there. An inherited `Client` class now serves only for events. Class initialization for both `Client` and `Commands` has therefore changed, please refer to the docs for more information.
@@ -82,6 +84,39 @@ Hummus.py v1.0.0:
 - Added `hummus.Member` as a working type annotation when making a command, will raise exception if mentioned user is not in guild or if the argument is not a mention.
 - Added `bool` as a working type annotation, should be self-explanatory.
 - There's likely something I'm forgetting, however, in-depth usage examples and explanations of Hummus.py will be provided in the documentation. Thanks for reading this.
+
+Version 0.7.1:
+- Message delete event bug fix
+- Guild ban add/remove bug fix
+- Me trying to satisfy some random red underlines because oh boy pyright-extended or whatever "corrects" my code loves to be stupid about the randomest stuff
+- Randomly the `toDict()` function for an `allGuild` object was asynchronous, i un-async-ed it cause like why not (it is literally like 1 line)
+
+Version 0.7.0:
+- No more mental breakdown, I tested my scripts! (hopefully)
+- Bug fix with emojis not updating for cache
+- The `State` object in the `Client` object has moved to a new `state.py` file, a `Message` object now has a `state` attribute, and a `State` object now has a `edit` function where you pass a channel id, message id, and content.
+- New `Attachment` class, a `Message` object will now have a list of attachment objects. Attachment objects have the attributes `id`, `filename`, `size`, `url`, `proxy_url`, `height`, and `width`. Man I really need a readthedocs page or something.
+
+Version 0.6.6, 0.6.7:
+- IM SORRY IM SORRY IM SORRY ILL TEST MY SCRIPTS, IM SORRY PYTHON GODS, WHY, WHY, WHYYYYYYYYYYYYYYYYYYYYYYYYYYYY (yes i tested the script this time)
+
+Version 0.6.5:
+- Perm checking now actually works hopefully (yay i love publishing untested scripts)
+
+Verson 0.6.4:
+- Some bug in guild update got fixed, thats kinda it
+- Excuses to pretend that I actively update hummus.py!!!! (real)
+
+Version 0.6.3:
+- ok guys, i tested starting up, so stuff **should** not break now (i love forgetting yet another bug making this unusable)
+
+Version 0.6.2:
+- i am so idiot i literally didnt test this version out and realize one of the files was missing a parenthesis! (the whole package broke
+
+Version 0.6.1:
+- Bug fixes with `setRoles()`, `addRoles()`, and `removeRoles()` in the `Member` and `User` objects
+- Forgot to add `ban()` and `unban()` functions in the `Member` and `User` objects, also their respective gateway events now exist in `hummus.Events`
+- README update, more up-to-date ig
 
 Version 0.6.0:
 - `AllGuild` now inherits from `Guild` instead of making a `Guild` attribute in the class.

@@ -12,8 +12,7 @@ async def prepareEmbed(embed):
 		prep_embed["author"] = {"name":embed.author.name,"url":embed.author.url,"icon_url":embed.author.icon_url}
 	for field in embed.fields:
 		prep_embed['fields'].append({"name":field.name,"value":field.value,"inline":field.inline})
-	embed = [prep_embed]
-	return embed
+	return prep_embed
 
 def makeEmbed(embeds):
 	prep = []
@@ -21,10 +20,10 @@ def makeEmbed(embeds):
 		if embed['type'] == "image" or embed['type'] == "gifv":
 			e = ImageEmbed(embed)
 		else:
-			e = Embed(embed['title'],embed['description'],embed.get('color'),embed.get('url'),embed.get('timestamp'))
+			e = Embed(embed.get('title'),embed.get('description'),embed.get('color'),embed.get('url'),embed.get('timestamp'))
 		if embed.get('fields') and type(e) == Embed:
 			for field in embed['fields']:
-				e._addField(field['name'],field['value'],field.get('inline'))
+				e._addField(field.get('name'),field.get('value'),field.get('inline'))
 		if embed.get('video'):
 			e._addVideo(embed['video']['url'],embed['video']['width'],embed['video']['height'])
 		if embed.get('provider'):

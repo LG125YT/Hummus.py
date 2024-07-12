@@ -57,8 +57,10 @@ class hMessage:
 		if file and not file.empty:
 			if type(file) != File:
 					raise Exception("Please pass a \"File\" object to the \"file\" parameter.")
-			file.fields['payload_json'] = (None,json.dumps(data))
-			data = MultipartEncoder(fields=file.fields,boundary='----WebKitFormBoundary'+''.join(random.sample(string.ascii_letters+string.digits,16)))
+			data = {'content': message,'tts':tts}
+			fields = file.fields
+			fields['payload_json'] = (None,json.dumps(data))
+			data = MultipartEncoder(fields=fields,boundary='----WebKitFormBoundary'+''.join(random.sample(string.ascii_letters+string.digits,16)))
 			self.s.headers['Content-Type'] = data.content_type
 		else:
 			if len(embeds) > 0:

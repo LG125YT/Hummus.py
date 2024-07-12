@@ -199,7 +199,7 @@ class hGuild:
 		if s.success:
 			return Emoji(r.json(),self.instance)
 		else:
-			raise Exception(s.reason)
+			raise s.exception(s.reason)
 
 	async def edit_emoji(self,guild_id:str,id:str,name:str) -> Emoji:
 		from ... import HTTPStatus

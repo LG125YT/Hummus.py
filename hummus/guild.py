@@ -4,6 +4,7 @@ from .message import Message
 from .embed import Embed
 
 from typing import *
+import contextlib
 import asyncio
 
 class PermissionOverwrite:
@@ -141,7 +142,7 @@ class Typing:
 
 	async def doTypingAction(self):
 		while self._isTyping:
-			await self.channel.start_typing()
+			await self.channel.startTyping()
 			await asyncio.sleep(10)
 
 	async def __aenter__(self):
@@ -153,10 +154,8 @@ class Typing:
 		self._isTyping = False
 		if self.background_task:
 			self.background_task.cancel()
-			try:
+			with contextlib.suppress(asyncio.CancelledError):
 				await self.background_task
-			except asyncio.CancelledError:
-				pass
 
 class PartialChannel:
 	def __init__(self,data,guild_id,instance):
@@ -333,8 +332,7 @@ class Guild(PartialGuild):
 		super().__init__(guild,instance)
 		self.instance = instance
 		self.channels:list[Channel] = [Channel(channel,instance) for channel in guild['channels']]
-		instance.guilds.append(self)
-		self.members:list[Member] = [Member(member,self.id,instance) for member in guild['members']]
+		self.members:list[Member] = [Member(member,self.id,instance,self.roles) for member in guild['members']]
 		self.owner:Member = None #type:ignore
 		for member in self.members:
 			if member.id == self.owner_id:

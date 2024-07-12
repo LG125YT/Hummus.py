@@ -58,6 +58,7 @@ async def splitArgs(function,message,instance):
 	role_mention_idx = 0
 	mention_idx = 0
 	idx = 0
+	mentioned = dict()
 	for arg_name, arg in zip(func_args, refined):
 		if idx >= len(refined):
 			break
@@ -77,28 +78,41 @@ async def splitArgs(function,message,instance):
 			else:
 				await instance.custom_exceptions.onInvalidBoolean(arg,message)
 		elif arg_name.annotation == Role:
+			clean = arg.replace("<@&","").replace(">","")
 			try:
-				if not (arg.startswith("<@&") and arg.endswith(">") and arg.replace("<@&","").replace(">","") in [str(r.id) for r in message.mention_roles]):
+				if not (arg.startswith("<@&") and arg.endswith(">") and not (clean in [str(r.id) for r in message.mention_roles] or mentioned.get(clean))):
 					raise Exception
-				custom_kwargs.append(message.mention_roles[role_mention_idx])
-				role_mention_idx += 1
+				if mentioned.get(clean):
+					custom_kwargs.append(mentioned[clean])
+				else:
+					custom_kwargs.append(message.mention_roles[role_mention_idx])
+					mentioned[clean] = message.mention_roles[role_mention_idx]
+					role_mention_idx += 1
 			except Exception:
 				await instance.custom_exceptions.onInvalidRole(arg,message)
 		elif arg_name.annotation == User:
-			try:
-				if not arg.startswith("<@") and not arg.endswith(">") and not arg.replace("<@&","").replace(">","").replace("!","") in [str(m.id) for m in message.mentions]:
-					raise Exception
-				custom_kwargs.append(message.mentions[mention_idx])
+			clean = arg.replace("<@","").replace(">","").replace("!","")
+			if not arg.startswith("<@") and not arg.endswith(">") and not (clean in [str(m.id) for m in message.mentions] or mentioned.get(clean)):
+				return await instance.custom_exceptions.onInvalidMention(arg,message)
+			if mentioned.get(clean):
+				custom_kwargs.append(mentioned[clean])
+			else:
+				m = message.mentions[mention_idx]
+				custom_kwargs.append(m)
+				mentioned[clean] = m
 				mention_idx += 1
-			except Exception:
-				await instance.custom_exceptions.onInvalidMention(arg,message)
 		elif arg_name.annotation == Member:
+			clean = arg.replace("<@","").replace(">","").replace("!","")
 			try:
-				print(arg)
-				if not arg.startswith("<@") and not arg.endswith(">") and not arg.replace("<@&","").replace(">","").replace("!","") in [str(m.id) for m in message.mentions]:
-					raise Exception
-				custom_kwargs.append(await message.mentions[mention_idx].getGuildMember())
-				mention_idx += 1
+				if not arg.startswith("<@") and not arg.endswith(">") and not (clean in [str(m.id) for m in message.mentions] or mentioned.get(clean)):
+					raise Exception #User.getGuildMember() can also raise an exception that should be caught, so we do not return here
+				if mentioned.get(clean):
+					custom_kwargs.append(mentioned[clean])
+				else:
+					m = await message.mentions[mention_idx].getGuildMember()
+					custom_kwargs.append(m)
+					mentioned[clean] = m
+					mention_idx += 1
 			except Exception:
 				await instance.custom_exceptions.onInvalidMention(arg,message)
 		elif arg_name.annotation == Channel:
@@ -109,7 +123,7 @@ async def splitArgs(function,message,instance):
 					custom_kwargs.append(channel)
 					break
 			if not found:
-				await instance.custom_exceptions.onInvalidChannel(arg,message)
+				return await instance.custom_exceptions.onInvalidChannel(arg,message)
 		else:
 			custom_kwargs.append(arg)
 
@@ -122,7 +136,7 @@ default_settings = ClientSettings()
 default_status = CustomStatus(type=0)
 
 class Client:
-	def __init__(self,token,commands=None,url="https://hummus.sys42.net/api/v6/",cdn=None,custom_status:CustomStatus=default_status,exception_handler:CustomizableExceptions=default_exceptions,settings:ClientSettings=default_settings):
+	def __init__(self,token,commands:Union[Commands,None]=None,url="https://hummus.sys42.net/api/v6/",cdn=None,custom_status:CustomStatus=default_status,exception_handler:CustomizableExceptions=default_exceptions,settings:ClientSettings=default_settings):
 		self.websocket = ""
 		self.ping = None
 		self.state:Ready = None #type:ignore
@@ -144,6 +158,8 @@ class Client:
 		e = requests.get(url+"gateway",headers={"User-Agent":agent})
 		if e.json().get('url'):
 			self.websocket = e.json()['url']+"?api=v6&encoding=json"
+			if not self.websocket.startswith("wss://"):
+				self.websocket = "wss://" + self.websocket
 		else:
 			raise Exception("Please tell the website owner to add '/gateway' as an API endpoint.")
 		if cdn:
@@ -153,8 +169,8 @@ class Client:
 			cdn[0] = cdn[0]+"-cdn"
 			cdn = ".".join(cdn)
 			self.cdn = cdn.replace("api/","").replace("v6/","")
-		if not cdn.endswith("/"):
-			cdn = cdn + "/"
+		if not self.cdn.endswith("/"):
+			self.cdn = cdn + "/"
 		self.status = custom_status._toJson()
 		self.token = token
 		self.base_url = url
@@ -170,11 +186,11 @@ class Client:
 		self.guilds:list[Guild] = []
 		while True:
 			try:
-				with connect(self.websocket,user_agent_header=ua.random) as websocket:
+				with connect(self.websocket,user_agent_header=ua.random,max_size=None) as websocket:
 					self.connection = websocket
-					self.__log("\033[92mrestarting...\033[0m")
+					self.__log("\033[32mrestarting...\033[0m")
 					if reconnect:
-						self.__log(f"\033[92mResuming session with sequence ID {seq}\033[0m")
+						self.__log(f"\033[32mResuming session with sequence ID {seq}\033[0m")
 						websocket.send(json.dumps({"d":{"token":self.token,"session_id":session,"seq":seq},"op":6}))
 					else:
 						websocket.send(json.dumps({'op': 2,'d': {'token':self.token,'presence': self.status}}))
@@ -185,7 +201,7 @@ class Client:
 
 						if event['t'] == "READY":
 							session = event['d']['session_id']
-							self.__log("\033[92mready, recieving login guild data\033[0m")
+							self.__log("\033[32mready, recieving login guild data\033[0m")
 							self.state = Ready(event['d'],self)
 							self.user = self.state.user
 							self.__start_time = datetime.now()
@@ -454,11 +470,13 @@ class Client:
 							if can_respond or not self.settings.apply_to_events:
 								thread.start_new_thread(asyncio.run,(self.on_message_create(message),))
 							prefix = await self.get_prefix(message)
-							if self.commands and prefix and event['d']['content'].startswith(prefix):
+							if self.commands and prefix and event['d']['content'].startswith(prefix): #problem with uptime
 								context = Context(message,self)
 								func = message.content[len(prefix):]
 								args = func.split()
 								can_respond = True
+								if len(args) < 1:
+									can_respond = False
 								if not self.settings.reply_to_self and message.author.id == self.user.id:
 									can_respond = False
 								if not self.settings.reply_to_bots and message.author.bot:
@@ -472,11 +490,11 @@ class Client:
 												try:
 													thread.start_new_thread(asyncio.run,(command(context,*command_args),))
 												except TypeError as e:
-													if "required positional arguments" in str(e):
+													if "required positional argument" in str(e):
 														args = str(e).split(": '")[1].replace("'","").replace(",","").replace("and","").split()
 														await self.custom_exceptions.onMissingArguments(args,context)
-											except Exception as e:
-												print(f"\033[91mIgnoring exception: {e}\nTraceback:\033[0m")
+											except Exception as ex:
+												print(f"\033[31mIgnoring exception: {ex}\nTraceback:\033[0m")
 												traceback.print_exc()
 									except AttributeError as e:
 										if self.commands.aliases and self.commands.aliases.aliases.get(args[0]):
@@ -487,16 +505,16 @@ class Client:
 												try:
 													thread.start_new_thread(asyncio.run,(command(context,*command_args),))
 												except TypeError as e:
-													if "required positional arguments" in str(e):
+													if "required positional argument" in str(e):
 														args = str(e).split(": '")[1].replace("'","").replace(",","").replace("and","").split()
 														await self.custom_exceptions.onMissingArguments(args,context)
 											except Exception as e:
-												print(f"\033[91mIgnoring exception: {e}\nTraceback:\033[0m")
+												print(f"\033[31mIgnoring exception: {e}\nTraceback:\033[0m")
 										else:
 											if args[0] in str(e):
-												print(f"\033[91mCommand '{args[0]}' not found as a command or alias.\033[0m")
+												print(f"\033[31mCommand '{args[0]}' not found as a command or alias.\033[0m")
 			except Exception as e:
-				print(f"\033[91mDisconnected with error {e}, reconnecting...\033[0m")
+				print(f"\033[31mDisconnected with error {e}, reconnecting...\033[0m")
 				traceback.print_exc()
 				reconnect = True
 				time.sleep(5)

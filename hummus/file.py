@@ -1,7 +1,6 @@
 from typing import *
 import tempfile
 import filetype
-import requests
 import io
 
 class File:
@@ -14,7 +13,17 @@ class File:
 		thing = None #me smol brain hav no idea what to name
 
 		if type(file) == io.BufferedReader:
-			file = file.read() #the lines below should rake care of the rest
+			file = file.read()
+			with tempfile.NamedTemporaryFile(delete=True) as temp_file:
+				temp_file.write(file)
+				kind = filetype.guess(temp_file.name)
+			filename = file_name
+			read = file
+			if not kind:
+				thing = (file, read, 'unsupported')
+			else:
+				thing = (file, read, kind.mime)
+				filename += f".{kind.extension}"
 
 		elif type(file) == bytes:
 			with tempfile.NamedTemporaryFile(delete=True) as temp_file:
@@ -50,6 +59,7 @@ class File:
 			raise Exceptions.FileError(f"Invalid file type: {type(file)}. Please pass a file object, bytes, BytesIO or string.")
 
 		self.fields = {"file":thing,"payload_json":None}
+		self.file_json = {"filename":filename,"Content-Type":thing[2]}
 
 	async def get_file_data(self) -> bytes:
 		if self.empty:
@@ -73,10 +83,7 @@ class Icon: #guild icon, user avatar, banner, etc
 		self.instance = instance
 		self.object_id:str = data['id']
 		self.id:str = data.get(type)
-		self.url:Union[str,None] = f"{instance.cdn+type}s/{self.object_id}/{self.id}.gif"
-		e = requests.get(self.url)
-		if e.status_code == 404: #url is not a gif
-			self.url = f"{instance.cdn+type}s/{self.object_id}/{self.id}.png" #default to png
+		self.url:Union[str,None] = f"{instance.cdn+type}s/{self.object_id}/{self.id}.png"
 		if not self.id:
 			self.url = None
 			if is_user:

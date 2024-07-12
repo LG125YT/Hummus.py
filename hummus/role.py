@@ -204,6 +204,14 @@ class Permissions:
 		"""A factory method that creates a :class:`Permissions` with all
 		"Voice" permissions from the official Discord UI set to True."""
 		return cls(0b00000011111100000000000000000000)
+	
+	def get_dict(self): #i also made this lol
+		vals = {}
+		for attr in dir(self):
+			val = getattr(self.__class__,attr)
+			if isinstance(attr,property) and val:
+				vals[attr.__str__] = val
+		return vals
 
 	def update(self, **kwargs):
 		"""Bulk updates this permission object.

@@ -1,16 +1,15 @@
-from .guild import Channel
+from .guild import PartialGuild,Channel
+from .role import Role, Permissions
 from .file import Icon
-from .role import Role
 
 from typing import *
 
 class Profile:
 	def __init__(self,data,instance):
-		from .guild import Guild
 		self.instance = instance
 		self.connected_accounts:list = data['connected_accounts']
-		self.relationships:list[User] = [User(user,instance) for user in data['relatoinships']]
-		self.mutual_guilds:list[Guild] = [Guild(guild,instance) for guild in data['mutual_guilds']]
+		self.relationships:list[User] = [User(user,instance) for user in data['relationships']]
+		self.mutual_guilds:list[PartialGuild] = [PartialGuild(guild,instance) for guild in data['mutual_guilds']]
 		self.premium_since:str = data['premium_since']
 		self.user:User = User(data['user'],instance)
 
@@ -18,22 +17,31 @@ class Profile:
 		return await self.instance.add_friend(self.user.id)
 
 class Member:
-	def __init__(self,data,guild_id,instance):
+	def __init__(self,data,guild_id,instance,roles=None):
 		self.instance = instance
 		self.guild_id:str = guild_id
 		self.id:str = data['id']
 		self.mention:str = f"<@{data['id']}>"
 		self.nick:str = data['nick']
 		self.roles:list[Role] = []
-		for guild in instance.guilds:
-			if guild.id == guild_id:
-				for role in guild.roles:
-					if role.id in data['roles'] or role.id == guild_id:
-						self.roles.append(role)
+		if roles:
+			for role in roles:
+				if role.id in data['roles'] or role.id == guild_id:
+					self.roles.append(role)
+		else:
+			for guild in instance.guilds:
+				if guild.id == guild_id:
+					for role in guild.roles:
+						if role.id in data['roles'] or role.id == guild_id:
+							self.roles.append(role)
 		self.joined_at:str = data['joined_at']
 		self.deaf:bool = data['deaf']
 		self.mute:bool = data['mute']
 		self.user:User = User(data['user'],instance,guild_id)
+		self.permissions = Permissions()
+		for role in self.roles:
+			perms = role.permissions.get_dict()
+			self.permissions.update(**perms)
 
 	async def hasPermission(self,perm:str) -> bool:
 		for role in self.roles:
@@ -203,7 +211,7 @@ class User:
 		temp = await self.getGuildMember()
 		temp = [role.id for role in temp.roles]
 		for role in roles:
-			temp.append(role)
+			temp.append(role.id if type(role) == Role else role)
 		roles = temp
 		return await self.instance.http.update_guild_member(self.guild_id,self.id,roles=roles)
 

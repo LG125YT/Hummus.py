@@ -8,6 +8,7 @@ from .http import *
 from .main import *
 from .role import *
 from .user import *
+from . import utils
 
 __version__ = "1.0.0"
 
