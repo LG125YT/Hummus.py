@@ -4,7 +4,7 @@ class Aliases:
 	def __init__(self):
 		self.aliases = {}
 
-	def add_aliases(self,aliases:list[str]):
+	def add_aliases(self,aliases:List[str]):
 		def decorator(func):
 			for alias in aliases:
 				self.aliases[alias] = func
