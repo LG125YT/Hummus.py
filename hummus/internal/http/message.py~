@@ -91,8 +91,8 @@ class hMessage:
 		for id in ids:
 			r = self.s.delete(url=f"{self.instance.base_url}channels/{channel_id}/messages/{id}") #bulk delete endpoint doesnt exist (absolute stupid)
 			s = HTTPStatus(r)
-			#if not s.success:
-			#	raise s.exception(s.reason)
+			if not s.success:
+				raise s.exception(s.reason)
 
 	async def pin_message(self,channel_id:str,id:str) -> None:
 		from ... import HTTPStatus

@@ -1,3 +1,5 @@
+from typing import *
+
 class Role:
 	def __init__(self,data,guild_id,instance):
 		self.instance = instance
@@ -28,7 +30,7 @@ class Role:
 	async def edit(self,name=None,permissions=None,color=None,hoist=None,mentionable=None) -> 'Role':
 		return await self.instance.http.modify_role(self.guild_id,self.id,name,permissions,color,hoist,mentionable)
 
-	async def updatePosition(self,position) -> list['Role']:
+	async def updatePosition(self,position) -> List['Role']:
 		return await self.instance.http.modify_role_position(self.guild_id,self.id,position)
 
 	async def delete(self) -> None:

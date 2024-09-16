@@ -1,6 +1,6 @@
 # Hummus.py
 
-This is an asynchronous wrapper currently in version 1.0.0!
+This is an asynchronous wrapper currently in version 1.1.0!
 
 You can read the official documentation. It is unfinished, so you can currently find it in the `docs` folder of the [Github](https://github.com/LG125YT/Hummus.py) or [Gitlab](https://gitlab.com/lg125yt/hummus.py) repository. We will have a ReadTheDocs page soon.
 
@@ -65,6 +65,11 @@ Quotation marks are not necessary for arguments with no spaces!
  - LmTechyTEMOG's contributions and testing for version 1.0.0 of this package, he helped make the development of v1.0.0 faster.
 
 ### Changelog
+
+Version 1.1.0:
+- Many bug fixes, too lazy to remember them all. Some of them are type fixes for python 3.8 (i will forever hate pyright-extended for existing) and support for bots with no avatar set.
+- `Client.on_ message_create` is now not initialized in a thread. This is mainly to attempt to prevent file read/write conflicts if the event and a command executes at the same time and have to deal with the same files.
+- Began support for Oldcord. There still needs to be quite a bit of patching.
 
 Version 1.0.0:
 - Package revamp, it should now much easier to work on this and make projects using this package. **Please note that updating from a version before this will break your project until you make the proper revisions.** The following notes will explain all the changes made. **Please refer to the [official docs] for more specific usage explanations.**
