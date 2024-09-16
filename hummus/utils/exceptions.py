@@ -1,5 +1,7 @@
 from .context import Context
 
+from typing import *
+
 #exceptions
 class Exceptions:
 	#customizable
@@ -66,5 +68,5 @@ class CustomizableExceptions:
 		raise Exceptions.InvalidChannel(f"Provided argument '{arg}' is not a channel.\033[0m")
 
 	#when user dont know how to use command
-	async def onMissingArguments(self,args:list[str],context:Context) -> None:
+	async def onMissingArguments(self,args:List[str],context:Context) -> None:
 		raise Exceptions.MissingArguments(f"Argument(s) \"{', '.join(args)}\" are missing from message.\033[0")

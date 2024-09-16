@@ -69,7 +69,7 @@ class InvitePartialGuild:
 	async def kick(self,id:str,reason:Union[str,None]=None) -> None:
 		return await self.instance.http.kick(self.id,id,reason)
 
-	async def getBans(self) -> list['Ban']:
+	async def getBans(self) -> List['Ban']:
 		return await self.instance.http.get_bans(self.id)
 
 	async def banMember(self,user_id:str,reason:Union[str,None]=None,delete_message_days:int=0) -> None:
@@ -78,7 +78,7 @@ class InvitePartialGuild:
 	async def unbanMember(self,user_id:str) -> None:
 		return await self.instance.http.unban(self.id,user_id)
 
-	async def updateMember(self,id:str,nick:Union[str,None]=None,roles:Union[list[Union[Role,str]],None]=None)-> None:
+	async def updateMember(self,id:str,nick:Union[str,None]=None,roles:Union[List[Union[Role,str]],None]=None)-> None:
 		return await self.instance.http.update_guild_member(self.id,id,nick,roles)
 
 	async def update(self,name:Union[str,None]=None,icon:Union[File,None]=None) -> 'PartialGuild':
@@ -90,13 +90,13 @@ class InvitePartialGuild:
 	async def getChannel(self,channel_id:str) -> 'Channel':
 		return await self.instance.http.get_channel(channel_id)
 
-	async def updateChannelPostion(self,channel_id:str,position:int) -> list['Channel']:
+	async def updateChannelPostion(self,channel_id:str,position:int) -> List['Channel']:
 		return await self.instance.http.update_channel_position(self.id,channel_id,position)
 
 	async def updateChannel(self,id:str,name:Union[str,None]=None,topic:Union[str,None]=None,nsfw:Union[bool,None]=None,bitrate:Union[int,None]=None,user_limit:Union[int,None]=None) -> 'Channel':
 		return await self.instance.http.update_channel(self.id,id,name,topic,nsfw,bitrate,user_limit)
 
-	async def createChannel(self,name:str,type:int=0,bitrate:Union[int,None]=None,user_limit:Union[int,None]=None,permission_overwrites:Union[list[PermissionOverwrite],None]=None,nsfw:bool=False) -> 'Channel':
+	async def createChannel(self,name:str,type:int=0,bitrate:Union[int,None]=None,user_limit:Union[int,None]=None,permission_overwrites:Union[List[PermissionOverwrite],None]=None,nsfw:bool=False) -> 'Channel':
 		return await self.instance.http.create_channel(self.id,name,type,bitrate,user_limit,permission_overwrites,nsfw)
 
 	async def deleteChannel(self,id:str) -> None:
@@ -105,7 +105,7 @@ class InvitePartialGuild:
 	async def createRole(self) -> Role:
 		return await self.instance.http.create_role(self.id)
 
-	async def setRolePostion(self,id:str,position:int) -> list[Role]:
+	async def setRolePostion(self,id:str,position:int) -> List[Role]:
 		return await self.instance.http.set_role_position(self.id,id,position)
 
 	async def editRole(self,guild_id:str,id:str,name:Union[str,None]=None,permissions:Union[Permissions,int,None]=None,color:Union[int,None]=None,hoist:Union[bool,None]=None,mentionable:Union[bool,None]=None) -> Role:
@@ -114,7 +114,7 @@ class InvitePartialGuild:
 	async def deleteRole(self,id:str) -> None:
 		return await self.instance.http.delete_role(self.id,id)
 
-	async def getEmojis(self) -> list['Emoji']:
+	async def getEmojis(self) -> List['Emoji']:
 		return await self.instance.http.get_emojis(self.id)
 
 	async def getEmoji(self,id:str) -> 'Emoji':
@@ -132,7 +132,7 @@ class InvitePartialGuild:
 	async def createInvite(self) -> 'Invite':
 		return await self.instance.http.create_channel_invite(self.id) #default channel id is the same as guild id
 
-	async def getChannelInvites(self,id:str) -> list['Invite']:
+	async def getChannelInvites(self,id:str) -> List['Invite']:
 		return await self.instance.http.get_channel_invites(id)
 
 class Typing:
@@ -169,7 +169,7 @@ class PartialChannel:
 	async def getFull(self) -> 'Channel':
 		return await self.instance.http.get_channel(self.id)
 
-	async def getOverwrites(self) -> list[PermissionOverwrite]:
+	async def getOverwrites(self) -> List[PermissionOverwrite]:
 		for guild in self.instance.guilds:
 			if guild.id == self.guild_id:
 				for channel in guild.channels:
@@ -180,16 +180,16 @@ class PartialChannel:
 	async def startTyping(self) -> None:
 		return await self.instance.http.start_typing(self.id)
 
-	async def bulkDelete(self,messages:list[Union[Message,str]]) -> None:
+	async def bulkDelete(self,messages:List[Union[Message,str]]) -> None:
 		return await self.instance.http.bulk_delete(self.id,messages)
 
-	async def sendMessage(self,message:str="",embeds:list[Embed]=[],file:Union[File,None]=None,tts:bool=False) -> Message:
+	async def sendMessage(self,message:str="",embeds:List[Embed]=[],file:Union[File,None]=None,tts:bool=False) -> Message:
 		return await self.instance.http.send_message(self.id,message,embeds,file,tts)
 
-	async def getMessages(self,limit:int=50) -> list[Message]:
+	async def getMessages(self,limit:int=50) -> List[Message]:
 		return await self.instance.http.get_messages(self.id,limit)
 
-	async def getPins(self) -> list[Message]:
+	async def getPins(self) -> List[Message]:
 		return await self.instance.http.get_channel_pins(self.id)
 
 	async def pinMessage(self,message:Union[Message,str]) -> None:
@@ -200,13 +200,13 @@ class PartialChannel:
 		message = message.id if type(message) == Message else message
 		return await self.instance.http.unpin_message(self.id,message)
 
-	async def getInvites(self) -> list['Invite']:
+	async def getInvites(self) -> List['Invite']:
 		return await self.instance.http.get_channel_invites(self.id)
 
 	async def createInvite(self,max_age:Union[int,None]=None,max_uses:Union[int,None]=None,temporary:Union[bool,None]=None,unique:Union[bool,None]=None) -> 'Invite':
 		return await self.instance.http.create_channel_invite(self.id,max_age,max_uses,temporary,unique)
 
-	async def updatePosition(self,position:int) -> list['Channel']:
+	async def updatePosition(self,position:int) -> List['Channel']:
 		return await self.instance.http.update_channel_position(self.guild_id,self.id,position)
 
 	async def updateChannel(self,name:Union[str,None]=None,position:Union[int,None]=None,topic:Union[str,None]=None,nsfw:Union[bool,None]=None,bitrate:Union[int,None]=None,user_limit:Union[int,None]=None) -> 'Channel':
@@ -310,7 +310,7 @@ class Emoji:
 		self.instance = instance
 		self.id:str = data['id']
 		self.name:str = data['name']
-		self.guild_id:str = data['guild_id']
+		self.guild_id:str = data.get('guild_id')
 		self.roles:list = data['roles']
 		self.user:User = User(data['user'],instance,self.guild_id)
 		self.require_colons:bool = data['require_colons']

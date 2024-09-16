@@ -1,4 +1,5 @@
 #welcome to stupidity central
+import websockets
 from websockets.sync.client import connect
 import _thread as thread
 import fake_useragent
@@ -80,16 +81,16 @@ async def splitArgs(function,message,instance):
 		elif arg_name.annotation == Role:
 			clean = arg.replace("<@&","").replace(">","")
 			try:
-				if not (arg.startswith("<@&") and arg.endswith(">") and not (clean in [str(r.id) for r in message.mention_roles] or mentioned.get(clean))):
-					raise Exception
-				if mentioned.get(clean):
-					custom_kwargs.append(mentioned[clean])
-				else:
-					custom_kwargs.append(message.mention_roles[role_mention_idx])
-					mentioned[clean] = message.mention_roles[role_mention_idx]
-					role_mention_idx += 1
-			except Exception:
-				await instance.custom_exceptions.onInvalidRole(arg,message)
+			    if not (arg.startswith("<@&") and arg.endswith(">")) and not (clean in [str(r.id) for r in message.mention_roles] or mentioned.get(clean)):
+			        raise Exception
+			    if mentioned.get(clean):
+			        custom_kwargs.append(mentioned[clean])
+			    else:
+			        custom_kwargs.append(message.mention_roles[role_mention_idx])
+			        mentioned[clean] = message.mention_roles[role_mention_idx]
+			        role_mention_idx += 1
+			except Exception as e:
+			    await instance.custom_exceptions.onInvalidRole(arg,message)
 		elif arg_name.annotation == User:
 			clean = arg.replace("<@","").replace(">","").replace("!","")
 			if not arg.startswith("<@") and not arg.endswith(">") and not (clean in [str(m.id) for m in message.mentions] or mentioned.get(clean)):
@@ -149,7 +150,7 @@ class Client:
 		elif commands is None:
 			self.prefix = None
 		else:
-			raise TypeError("Commands must be of type Commands.")
+		    raise TypeError("Commands must be of type Commands.")
 		self.s = requests.session()
 		self.s.headers = {"Authorization":token,"Content-Type":"application/json","User-Agent":agent}
 		self.http:HTTP = HTTP(self)
@@ -181,12 +182,13 @@ class Client:
 
 	async def run(self):
 		reconnect = False
+		last_event = None
 		session = ""
-		seq = ""
+		seq = None
 		self.guilds:list[Guild] = []
 		while True:
 			try:
-				with connect(self.websocket,user_agent_header=ua.random,max_size=None) as websocket:
+				with connect(self.websocket,additional_headers=self.s.headers,user_agent_header=ua.random,max_size=None) as websocket:
 					self.connection = websocket
 					self.__log("\033[32mrestarting...\033[0m")
 					if reconnect:
@@ -197,7 +199,15 @@ class Client:
 
 					while True:
 						event = json.loads(websocket.recv())
-						seq = event['s']
+						if reconnect:
+						    print(event)
+						if event.get('s'):
+						    seq = event['s']
+						if not event.get('t'):
+						    event['t'] = None
+
+						if event['t']:
+						    last_event = event
 
 						if event['t'] == "READY":
 							session = event['d']['session_id']
@@ -468,7 +478,12 @@ class Client:
 							if not self.settings.reply_to_bots and message.author.bot:
 								can_respond = False
 							if can_respond or not self.settings.apply_to_events:
-								thread.start_new_thread(asyncio.run,(self.on_message_create(message),))
+							    try:
+							        await self.on_message_create(message)
+							    except Exception as e:
+							        print(f"\033[31mIgnoring exception: {e}\nTraceback:\033[0m")
+							        traceback.print_exc()
+
 							prefix = await self.get_prefix(message)
 							if self.commands and prefix and event['d']['content'].startswith(prefix): #problem with uptime
 								context = Context(message,self)
@@ -513,6 +528,10 @@ class Client:
 										else:
 											if args[0] in str(e):
 												print(f"\033[31mCommand '{args[0]}' not found as a command or alias.\033[0m")
+			except websockets.exceptions.ConnectionClosedOK as e:
+			    print(f"heartbeat expiry close, {e}\nLast event: {last_event}\nAt: {datetime.now()}")
+			    traceback.print_exc()
+			    reconnect = True
 			except Exception as e:
 				print(f"\033[31mDisconnected with error {e}, reconnecting...\033[0m")
 				traceback.print_exc()
