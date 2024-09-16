@@ -20,10 +20,10 @@ class Context:
 		self.http:HTTP = instance.http
 		self.typing:Typing = Typing(self.channel)
 
-	async def reply(self, content:str="",embeds:list[Embed]=[],file:Union[File,None]=None) -> Message:
+	async def reply(self, content:str="",embeds:List[Embed]=[],file:Union[File,None]=None) -> Message:
 		return await self.http.send_message(self.message.channel_id,f"> {self.message.content} \n<@{self.author.id}> {content}",embeds,file,_reply=Reply(self.message))
 
-	async def sendMessage(self, content:str="",embeds:list[Embed]=[],file:Union[File,None]=None) -> Message:
+	async def sendMessage(self, content:str="",embeds:List[Embed]=[],file:Union[File,None]=None) -> Message:
 		return await self.http.send_message(self.message.channel_id,content,embeds,file)
 
 	async def startTyping(self) -> None:

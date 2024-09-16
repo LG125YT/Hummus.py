@@ -10,7 +10,7 @@ class hChannel:
 		self.instance = instance
 		self.s = instance.s
 
-	async def create_channel(self,guild_id:str,name:str,type:int=0,bitrate:Union[int,None]=None,user_limit:Union[int,None]=None,permission_overwrites:Union[list[PermissionOverwrite],None]=None,nsfw:bool=False) -> Channel: #parent_id excluded because creating categories doesn't exist
+	async def create_channel(self,guild_id:str,name:str,type:int=0,bitrate:Union[int,None]=None,user_limit:Union[int,None]=None,permission_overwrites:Union[List[PermissionOverwrite],None]=None,nsfw:bool=False) -> Channel: #parent_id excluded because creating categories doesn't exist
 		from ... import HTTPStatus
 		data = {"name":name,"type":type,"nsfw":nsfw}
 		if bitrate:
@@ -35,7 +35,7 @@ class hChannel:
 		else:
 			raise s.exception(s.reason)
 
-	async def get_messages(self,channel_id:str,limit:int=50) -> list[Message]:
+	async def get_messages(self,channel_id:str,limit:int=50) -> List[Message]:
 		from ... import HTTPStatus
 		r = self.s.get(url=f"{self.instance.base_url}channels/{channel_id}/messages/",json={"limit":limit})
 		s = HTTPStatus(r)
@@ -51,7 +51,7 @@ class hChannel:
 		if not s.success:
 			raise s.exception(s.reason)
 
-	async def get_channel_pins(self,id:str) -> list[Message]:
+	async def get_channel_pins(self,id:str) -> List[Message]:
 		from ... import HTTPStatus, Message
 		r = self.s.get(f"{self.instance.base_url}channels/{id}/pins")
 		s = HTTPStatus(r)
@@ -60,7 +60,7 @@ class hChannel:
 		else:
 			raise s.exception(s.reason)
 
-	async def get_channel_invites(self,id:str) -> list[Invite]:
+	async def get_channel_invites(self,id:str) -> List[Invite]:
 		from ... import HTTPStatus
 		r = self.s.get(f"{self.instance.base_url}channels/{id}/invites")
 		s = HTTPStatus(r)
@@ -103,7 +103,7 @@ class hChannel:
 		if not s.success:
 			raise s.exception(s.reason)
 
-	async def update_channel_position(self,guild_id:str,id:str,position:int) -> list[Channel]:
+	async def update_channel_position(self,guild_id:str,id:str,position:int) -> List[Channel]:
 		from ... import HTTPStatus
 		r = self.s.patch(f"{self.instance.base_url}guilds/{guild_id}/channels/",json=[{"id":id,"position":int(position)}])
 		s = HTTPStatus(r)

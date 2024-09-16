@@ -62,10 +62,10 @@ class Message:
 			content = f"> {self.original_reply}\n<@{self.original_author.id}> {content}"
 		return await self.instance.http.edit_message(self.channel_id,self.id,content,_reply=self.is_reply,_reply_content=self.original_reply,_reply_author=self.original_author)
 
-	async def send(self,content:str="", embeds:list[Embed]=[],file:Union[File,None]=None) -> 'Message':
+	async def send(self,content:str="", embeds:List[Embed]=[],file:Union[File,None]=None) -> 'Message':
 		return await self.instance.http.send_message(self.channel_id,content,embeds,file)
 
-	async def reply(self,content:str="",embeds:list[Embed]=[],file:Union[File,None]=None) -> 'Message':
+	async def reply(self,content:str="",embeds:List[Embed]=[],file:Union[File,None]=None) -> 'Message':
 		from .internal import Reply
 		return await self.instance.http.send_message(self.channel_id,f"> {self.content}\n<@{self.author.id}> {content}",embeds,file,_reply=Reply(self))
 

@@ -106,11 +106,11 @@ class Member:
 	async def unban(self) -> None:
 		return await self.instance.http.unban(self.guild_id,self.id)
 
-	async def setRoles(self,roles:list[Union[Role,str]]) -> None:
+	async def setRoles(self,roles:List[Union[Role,str]]) -> None:
 		roles = [role.id if type(role) == Role else role for role in roles]
 		return await self.instance.http.update_guild_member(self.guild_id,self.id,roles=roles)
 
-	async def removeRoles(self,roles:list[Union[Role,str]]):
+	async def removeRoles(self,roles:List[Union[Role,str]]):
 		temp = [role.id for role in self.roles]
 		for role in roles:
 			if type(role) == Role:
@@ -120,7 +120,7 @@ class Member:
 		roles = temp
 		return await self.instance.http.update_guild_member(self.guild_id,self.id,roles=roles)
 
-	async def addRoles(self,roles:list[Union[Role,str]]) -> None:
+	async def addRoles(self,roles:List[Union[Role,str]]) -> None:
 		temp = [role.id if type(role) == Role else role for role in self.roles]
 		roles = [role.id if type(role) == Role else role for role in roles]
 		for role in roles:
@@ -138,7 +138,7 @@ class Presence:
 	def __init__(self,data,guild_id,instance):
 		self.instance = instance
 		self.guild_id:Union[str,None] = guild_id
-		self.game:str = data['game']
+		self.game:str = data.get('game')
 		self.status:str = data['status']
 		self.user:User = User(data['user'],instance,guild_id)
 
@@ -154,7 +154,7 @@ class User:
 		self.discriminator:str = data['discriminator']
 		self.mention:str = f"<@{data['id']}>"
 		self.avatar:Icon = Icon(data,"avatar",self.instance,True)
-		self.bot:bool = data['bot']
+		self.bot:bool = data.get('bot')
 
 	async def send_friend_request(self) -> None:
 		return await self.instance.add_friend(self.id)
@@ -173,7 +173,7 @@ class User:
 						return member
 		raise Exception("Client is not in a guild with the user!")
 
-	async def toDict(self):
+	def toDict(self):
 		return {"id":self.id,"username":self.username,"discriminator":self.discriminator,"mention":self.mention,"avatar":self.avatar.url,"bot":self.bot}
 
 	async def ban(self,reason:Union[str,None]=None,delete_message_days:int=0) -> None:
@@ -186,13 +186,13 @@ class User:
 			raise Exception("This user was not found in a guild.")
 		return await self.instance.http.unban(self.guild_id,self.id)
 
-	async def setRoles(self,roles:list[Union[Role,str]]) -> None:
+	async def setRoles(self,roles:List[Union[Role,str]]) -> None:
 		if not self.guild_id:
 			raise Exception("This user was not found in a guild.")
 		roles = [role.id if type(role) == Role else role for role in roles]
 		return await self.instance.http.update_guild_member(self.guild_id,self.id,roles=roles)
 
-	async def removeRoles(self,roles:list[Union[Role,str]]) -> None:
+	async def removeRoles(self,roles:List[Union[Role,str]]) -> None:
 		if not self.guild_id:
 			raise Exception("This user was not found in a guild.")
 		temp = await self.getGuildMember()
@@ -205,7 +205,7 @@ class User:
 		roles = temp
 		return await self.instance.http.update_guild_member(self.guild_id,self.id,roles=roles)
 
-	async def addRoles(self,roles:list[Union[Role,str]]) -> None:
+	async def addRoles(self,roles:List[Union[Role,str]]) -> None:
 		if not self.guild_id:
 			raise Exception("This user was not found in a guild.")
 		temp = await self.getGuildMember()

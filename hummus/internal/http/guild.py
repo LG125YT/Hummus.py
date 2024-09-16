@@ -44,7 +44,7 @@ class hGuild:
 		if not s.success:
 			raise s.exception(s.reason)
 
-	async def get_bans(self,guild_id:str) -> list[Ban]:
+	async def get_bans(self,guild_id:str) -> List[Ban]:
 		from ... import HTTPStatus
 		r = self.s.get(url=f"{self.instance.base_url}/guilds/{guild_id}/bans")
 		s = HTTPStatus(r)
@@ -69,7 +69,7 @@ class hGuild:
 		if not s.success:
 			raise s.exception(s.reason)
 
-	async def update_guild_member(self,guild_id:str,user_id:str,nick:Union[str,None]=None,roles:Union[list[Union[Role,str]],None]=None) -> None: #mute,deaf,channel_id params are for voice, which doesn't exist on hummus yet
+	async def update_guild_member(self,guild_id:str,user_id:str,nick:Union[str,None]=None,roles:Union[List[Union[Role,str]],None]=None) -> None: #mute,deaf,channel_id params are for voice, which doesn't exist on hummus yet
 		from ... import HTTPStatus
 		data = {}
 		if roles:
@@ -146,7 +146,7 @@ class hGuild:
 		else:
 			raise s.exception(s.reason)
 
-	async def modify_role_position(self,guild_id:str,id:str,position:int) -> list[Role]:
+	async def modify_role_position(self,guild_id:str,id:str,position:int) -> List[Role]:
 		from ... import HTTPStatus
 		r = self.s.patch(url=f"{self.instance.base_url}guilds/{guild_id}/roles",json=[{"id":id,"position":int(position)}])
 		s = HTTPStatus(r)
@@ -174,7 +174,7 @@ class hGuild:
 		else:
 			raise s.exception(s.reason)
 
-	async def get_emojis(self,guild_id:str) -> list[Emoji]:
+	async def get_emojis(self,guild_id:str) -> List[Emoji]:
 		from ... import HTTPStatus
 		r = self.s.get(f"{self.instance.base_url}guilds/{guild_id}/emojis")
 		s = HTTPStatus(r)
