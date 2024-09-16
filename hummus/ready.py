@@ -25,6 +25,7 @@ class Ready:
 		self.relationships:list[Relationship] = [Relationship(relation,instance) for relation in data['relationships']]
 		self.application:Union[Application,None] = None
 		if data.get('application'):
+			data['application']['discriminator'] = self.user.discriminator
 			self.application = Application(data['application'],instance)
 
 class Self(User):
