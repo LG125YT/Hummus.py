@@ -1,1 +1,0 @@
-9999999999{"name": "jenkins-cli-tool", "version": "5.2", "summary": "CLI tool for Jenkins", "requires_dist": ["click", "python-jenkins"], "requires_python": "*", "files": [{"file": "jenkins-cli-tool-5.2.zip", "hash": "sha256:04c6bace120fc1f660326107c553223b25a130f832fc0529761f91eabc1fc51d"}], "yanked": false, "_cache_version": "2.0.0"}
