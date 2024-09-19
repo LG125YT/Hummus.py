@@ -108,6 +108,7 @@ class Member:
 
 	async def setRoles(self,roles:List[Union[Role,str]]) -> None:
 		roles = [role.id if type(role) == Role else role for role in roles]
+		roles.remove(self.guild_id)
 		return await self.instance.http.update_guild_member(self.guild_id,self.id,roles=roles)
 
 	async def removeRoles(self,roles:List[Union[Role,str]]):
@@ -118,6 +119,7 @@ class Member:
 			else:
 				temp.remove(role)
 		roles = temp
+		roles.remove(self.guild_id)
 		return await self.instance.http.update_guild_member(self.guild_id,self.id,roles=roles)
 
 	async def addRoles(self,roles:List[Union[Role,str]]) -> None:
@@ -126,6 +128,7 @@ class Member:
 		for role in roles:
 			temp.append(role)
 		roles = temp
+		roles.remove(self.guild_id)
 		return await self.instance.http.update_guild_member(self.guild_id,self.id,roles=roles)
 
 	async def kick(self,reason:Union[str,None]=None) -> None:
@@ -190,6 +193,7 @@ class User:
 		if not self.guild_id:
 			raise Exception("This user was not found in a guild.")
 		roles = [role.id if type(role) == Role else role for role in roles]
+		roles.remove(self.guild_id)
 		return await self.instance.http.update_guild_member(self.guild_id,self.id,roles=roles)
 
 	async def removeRoles(self,roles:List[Union[Role,str]]) -> None:
@@ -203,6 +207,7 @@ class User:
 			else:
 				temp.remove(role)
 		roles = temp
+		roles.remove(self.guild_id)
 		return await self.instance.http.update_guild_member(self.guild_id,self.id,roles=roles)
 
 	async def addRoles(self,roles:List[Union[Role,str]]) -> None:
@@ -213,6 +218,7 @@ class User:
 		for role in roles:
 			temp.append(role.id if type(role) == Role else role)
 		roles = temp
+		roles.remove(self.guild_id)
 		return await self.instance.http.update_guild_member(self.guild_id,self.id,roles=roles)
 
 	async def kick(self,reason:Union[str,None]=None) -> None:
