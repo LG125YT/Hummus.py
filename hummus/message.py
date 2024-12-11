@@ -2,6 +2,7 @@ from .file import File, Attachment
 from .embed import Embed
 
 from typing import *
+import re
 
 class Message:
 	def __init__(self,data,instance,reply:bool=False,reply_content=None,reply_author=None):
@@ -67,7 +68,8 @@ class Message:
 
 	async def reply(self,content:str="",embeds:List[Embed]=[],file:Union[File,None]=None) -> 'Message':
 		from .internal import Reply
-		return await self.instance.http.send_message(self.channel_id,f"> {self.content}\n<@{self.author.id}> {content}",embeds,file,_reply=Reply(self))
+		filtered = re.sub(r'<@!?(\d+)>|@everyone|<@&(\d+)>', '[mention]', self.content)
+		return await self.instance.http.send_message(self.channel_id,f"> {filtered}\n<@{self.author.id}> {content}",embeds,file,_reply=Reply(self))
 
 	async def pin(self) -> None:
 		return await self.instance.http.pin_message(self.channel_id,self.id)

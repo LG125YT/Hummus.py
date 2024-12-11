@@ -81,10 +81,11 @@ class Icon: #guild icon, user avatar, banner, etc
 	def __init__(self,data,type,instance,is_user=False):
 		from .utils import Enums #haha i love circular import errors!
 		self.instance = instance
-		self.object_id:str = data['id']
-		self.id:str = data.get(type)
-		self.url:Union[str,None] = f"{instance.cdn+type}s/{self.object_id}/{self.id}.png"
-		if not self.id:
+		self.object_id: str = data['id']
+		self.hash: str = data.get(type)
+		self.attachment_type: str = "gif" if self.hash and self.hash.startswith("a_") else "png"
+		self.url: Union[str,None] = f"{instance.cdn+type}s/{self.object_id}/{self.hash}.{self.attachment_type}"
+		if not self.hash:
 			self.url = None
 			if is_user:
 				self.url = Enums.DefaultAvatars.all[int(data['discriminator'])%5]
