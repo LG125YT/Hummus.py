@@ -6,6 +6,7 @@ from ..embed import Embed
 from ..file import File
 
 from typing import *
+import re
 
 class Context:
 	def __init__(self,data,instance):
@@ -21,7 +22,8 @@ class Context:
 		self.typing:Typing = Typing(self.channel)
 
 	async def reply(self, content:str="",embeds:List[Embed]=[],file:Union[File,None]=None) -> Message:
-		return await self.http.send_message(self.message.channel_id,f"> {self.message.content} \n<@{self.author.id}> {content}",embeds,file,_reply=Reply(self.message))
+		filtered = re.sub(r'<@!?(\d+)>|@everyone|<@&(\d+)>', '[mention]', self.message.content)
+		return await self.http.send_message(self.message.channel_id,f"> {filtered} \n<@{self.author.id}> {content}",embeds,file,_reply=Reply(self.message))
 
 	async def sendMessage(self, content:str="",embeds:List[Embed]=[],file:Union[File,None]=None) -> Message:
 		return await self.http.send_message(self.message.channel_id,content,embeds,file)
