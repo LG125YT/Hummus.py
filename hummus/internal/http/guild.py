@@ -103,7 +103,7 @@ class hGuild:
 		r = self.s.patch(url=f"{self.instance.base_url}guilds/{guild_id}/members/@me/nick",json={"nick":nick})
 		s = HTTPStatus(r)
 		if s.success:
-			return Member(self.instance,r.json(),guild_id)
+			return Member(r.json(),guild_id,self.instance)
 		else:
 			raise s.exception(s.reason)
 

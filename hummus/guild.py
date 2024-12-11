@@ -85,7 +85,7 @@ class InvitePartialGuild:
 		return await self.instance.http.update_guild(self.id,name,icon)
 
 	async def nickSelf(self,nick:str=""):
-		return await self.instance.http.nick_self(self.id,nick)
+		return await self.instance.http.update_client_nick(self.id,nick)
 
 	async def getChannel(self,channel_id:str) -> 'Channel':
 		return await self.instance.http.get_channel(channel_id)
