@@ -1,12 +1,12 @@
 # Hummus.py
 
-This is an asynchronous wrapper currently in version 1.1.0!
+This is an asynchronous wrapper currently in version 1.1.2!
 
-You can read the official documentation. It is unfinished, so you can currently find it in the `docs` folder of the [Github](https://github.com/LG125YT/Hummus.py) or [Gitlab](https://gitlab.com/lg125yt/hummus.py) repository. We will have a ReadTheDocs page soon.
+You can read the official documentation. It is unfinished, so you can currently find it in the `docs` folder of the [Github](https://github.com/LG125YT/Hummus.py). The [Gitlab](https://gitlab.com/lg125yt/hummus.py) repository is currently unmaintained. We will have a ReadTheDocs page soon.
 
 ## Installation
 
-You can do `pip install hummus2016.py` to install Hummus.py as a package (you can also use its mirror package, `hmus`), or you can import it manually by downloading the files at [the GitLab repository.](https://gitlab.com/lg125yt/hummus.py)
+You can do `pip install hummus2016.py` to install Hummus.py as a package (you can also use its mirror package, `hmus`), or you can import it manually by downloading the files from the repository.
 
 ## Getting started
 
@@ -30,26 +30,19 @@ bot = Client(token="BOT_TOKEN_HERE")
 asyncio.run(bot.run())
 ```
 
-If you don't want to use `on_message_create` in an inherited `Client` class to detect for commands, you can import `Commands` from `hummus.utils` and create functions under that. (remember: In every function, you must have the `self` and `ctx` parameters!):
+If you don't want to use the `on_message_create` event class to detect for commands, you can import `Commands` from `hummus.utils` and create functions under that. (remember: In every function, you must have the `self` and `ctx` parameters!):
 
 ```py
 from hummus.utils import Commands
 
 class Cmds(Commands):
-	async def test(self,ctx):
+	async def test(self,ctx): # you can also add more parameters to create command arguments
 		await ctx.reply("test!")
 ```
 
 For more information, please refer to our Readthedocs page (coming soon).
 
 ## Other important notes
-
-### Features
-
-**Please** read the official documentation. It is unfinished, so you can currently find it in the `docs` folder of the [Github](https://github.com/LG125YT/Hummus.py) or [Gitlab](https://gitlab.com/lg125yt/hummus.py) repository. If you still need help, look below for ways to contact me.
-
-### Support
-I am LG125YT#2241 on Hummus, @ytlg on Discord, and @lg125yt on Replit. My email is lg125yt@gmail.com, but you might want to let me know somewhere else that you sent me an email.
 
 ### Arguments
 
@@ -59,12 +52,27 @@ The argument system looks for quotation marks in a message, and if there is text
 
 Quotation marks are not necessary for arguments with no spaces!
 
+### Features
+
+**Please** read the official documentation. It is unfinished, so you can currently find it in the `docs` folder of the [Github](https://github.com/LG125YT/Hummus.py) repository. If you still need help, look below for ways to contact me.
+
+### Support
+I am LG125YT#2241 on Hummus, and @ytlg on Discord. My email is [lg125yt@gmail.com](mailto:lg125yt@gmail.com), though I may not check it much.
+
 ## Credits
  - [Fossbotpy](https://gitlab.com/arandomnewaccount/fossbotpy) by arandomnewaccount, used parts of it in in `hummus.utils.Enums.Colors` and `hummus.File` processing.
  - [Discord.py](https://github.com/rapptz/discord.py) by Rapptz, used in `hummus.Permissions` and related permissions functionality.
  - LmTechyTEMOG's contributions and testing for version 1.0.0 of this package, he helped make the development of v1.0.0 faster.
 
 ### Changelog
+
+Version 1.1.2:
+- Bug fix about too many arguments being passed through internally.
+
+Version 1.1.1:
+- Bug fix surrounding @everyone being explicitly added as a role whenever modifying roles.
+- Bug fix about an incorrectly named function being used within the library
+- Regex filter to suppress all mentions in a "reply" (avoid a double ping by not repeating the ping in the reply content).
 
 Version 1.1.0:
 - Many bug fixes, too lazy to remember them all. Some of them are type fixes for python 3.8 (i will forever hate pyright-extended for existing) and support for bots with no avatar set.

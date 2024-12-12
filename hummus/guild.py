@@ -287,11 +287,9 @@ class Channel(PartialChannel):
 		elif self.type == 2:
 			return {"bitrate":self.bitrate,"name":self.name,"permission_overwrites":self.permission_overwrites,"position":self.position,"user_limit":self.user_limit,"type":self.type,"id":self.id,"guild_id":self.guild_id}
 
-	async def updateChannel(self,name:Union[str,None]=None,position:Union[int,None]=None,topic:Union[str,None]="",nsfw:Union[bool,None]=None,bitrate:Union[int,None]=None,user_limit:Union[int,None]=None) -> 'Channel': #type:ignore | fills in info not available in a PartialChannel object
+	async def updateChannel(self,name:Union[str,None]=None,topic:Union[str,None]="",nsfw:Union[bool,None]=None,bitrate:Union[int,None]=None,user_limit:Union[int,None]=None) -> 'Channel': #type:ignore | fills in info not available in a PartialChannel object
 		if not name:
 			name = self.name
-		if not position:
-			position = self.position
 		if self.type == 0:
 			if topic == "":
 				topic = self.topic
@@ -302,7 +300,7 @@ class Channel(PartialChannel):
 				bitrate = self.bitrate
 			if not user_limit:
 				user_limit = self.user_limit
-		return await self.instance.http.update_channel(self.id,name,position,topic,nsfw,bitrate,user_limit)
+		return await self.instance.http.update_channel(self.id,name,topic,nsfw,bitrate,user_limit)
 
 class Emoji:
 	def __init__(self,data,instance):
