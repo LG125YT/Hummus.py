@@ -2,7 +2,7 @@
 
 ## Installation
 
-You can do `pip install hummus2016.py` to install Hummus.py as a package (you can also use its mirror package, `hmus`), or you can import it manually by downloading the files at [the GitLab repository.](https://gitlab.com/lg125yt/hummus.py)
+You can do `pip install hummus2016.py` to install Hummus.py as a package (you can also use its mirror package, `hmus`), or you can import it manually by downloading the files at [the GitHub repository.](https://github.com/LG125YT/Hummus.py)
 
 ## Initialization
 

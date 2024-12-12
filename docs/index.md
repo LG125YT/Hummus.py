@@ -1,6 +1,6 @@
 # Hummus.py
 
-This is an asynchronous wrapper currently in version 1.0.0!
+This is an asynchronous wrapper currently in version 1.1.2!
 
 ## Installation
 

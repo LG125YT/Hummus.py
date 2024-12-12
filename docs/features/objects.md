@@ -221,15 +221,20 @@ Create an instance of the `Embed` object to create an embed that you can attach 
         - `name`
         - `value`
         - `inline`
-
-async def addField(self,name:str,value:str,inline:bool=False):
-    self.fields.append(Field(name,value,inline))
-
-async def addThumbnail(self,url:str):
-    self.thumbnail = Thumbnail(url)
-
-async def addImage(self,url:str):
-    self.image = Image(url)
+- `async addField(name, value, inline = False)`
+    - Adds a `Field` object to the embed.
+    - **Parameters:**
+        - `name`
+        - `value`
+        - `inline`
+- `async addThumbnail(url)`
+    - Adds a `Thumbnail` object to the embed.
+    - **Parameters:**
+        - `url`
+- `async addImage(url)`
+    - Adds an `Image` object to the embed.
+    - **Parameters:**
+        - `url`
 
 ## hummus.ImageEmbed
 
@@ -253,11 +258,83 @@ stuff
 
 ## hummus.File
 
+```py
+class hummus.File(
+    file : [str, bytes, io.BufferedReader, io.BytesIO],
+    file_name : str,
+    empty : bool = False
+    )
+```
+
+Create an instance of this object to pass into some sort of `send_message` function to upload a file.
+
+### Parameters:
+- `file` (One of: [`str`, `bytes`, `io.BufferedReader`, `io.BytesIO`])
+    - Required. Leads to the file contents. Use `str` if you have a file path, `bytes` for the raw file data, `io.BufferedReader` if you have an open file (eg: `file = open("file.ext","r")`), or `io.BytesIO` if, idk.
+- `file_name` (`str`)
+    - The name the file should be uploaded as.
+- `empty` (`bool`)
+    - Creates an "empty" file object. **Meant for internal use.**
+
+### Attributes:
+
+- `empty` (`bool`)
+    - Internal value set by the `empty` parameter.
+- `fields` (`dict`)
+    - Part of the data required to upload file with message.
+- `file_json` (`dict`)
+    - Part of the data required to upload file with message.
+
+### Functions:
+
+- `async get_file_data()`
+    - Internal function to get raw file data from object.
+
 ## hummus.Attachment
+
+```py
+class hummus.Attachment(...)
+```
+
+This is an object that is created internally and can exist as part of a list of attachment objects within the `Message` object. You should not have to create an instance of this object.
+
+## Attributes:
+- `instance` (`Client`)
+    - The `Client` object of the current session.
+- `id` (`str`)
+    - The ID of the file. 
+- `filename` (`str`)
+    - The name of the file.
+- `size` (`int`)
+    - The size of the file in bytes.
+- `url` (`str`)
+    - The url to the file download.
+- `proxy_url` (`str`)
+    - Hummus's proxy url to the file download, if applicable.
+- `height` (Optional[`int`])
+    - The height in pixels of the image file, if applicable
+- `width` (Optional[`int`])
+    - The width in pixels of the image file, if applicable.
 
 ## hummus.Icon
 
-stuff
+```py
+class hummus.Icon(...)
+```
+
+This is an object that is created internally and not one that you should create yourself. This object type can be found in various places where an image icon is present, such as guild icon, gc icon, user profile picture, etc.
+
+## Attributes:
+- `instance` (`Client`)
+    - The `Client` object of the current session.
+- `object_id` (`str`)
+    - The ID of the parent of this object (guild, channel, user, etc).
+- `hash` (Optional[`str`])
+    - The server-computed hash of the icon.
+- `attachment_type` (`str`)
+    - The image type (either `gif` or `png`)
+- `url` (Optional[`str`])
+    - The url to the image.
 
 ***
 
