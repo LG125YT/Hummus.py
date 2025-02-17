@@ -528,6 +528,10 @@ class Client:
 										else:
 											if args[0] in str(e):
 												print(f"\033[31mCommand '{args[0]}' not found as a command or alias.\033[0m")
+			except websockets.exceptions.ConnectionClosed as e:
+				if e.code == 4004:
+					print("\033[31mRecieved invalid token from server, exiting.\033[0m")
+					quit()
 			except websockets.exceptions.ConnectionClosedOK as e:
 			    print(f"heartbeat expiry close, {e}\nLast event: {last_event}\nAt: {datetime.now()}")
 			    traceback.print_exc()

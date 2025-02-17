@@ -59,8 +59,9 @@ class Message:
 		return await self.instance.http.delete_message(self.channel_id,self.id)
 
 	async def edit(self,content:str) -> 'Message':
+        filtered = re.sub(r'<@!?(\d+)>|@everyone|<@&(\d+)>', '[mention]', self.original_reply)
 		if self.is_reply:
-			content = f"> {self.original_reply}\n<@{self.original_author.id}> {content}"
+			content = f"> {filtered}\n<@{self.original_author.id}> {content}"
 		return await self.instance.http.edit_message(self.channel_id,self.id,content,_reply=self.is_reply,_reply_content=self.original_reply,_reply_author=self.original_author)
 
 	async def send(self,content:str="", embeds:List[Embed]=[],file:Union[File,None]=None) -> 'Message':
