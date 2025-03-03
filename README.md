@@ -182,7 +182,7 @@ Version 0.3.2:
 - Fixed hummus.py not working when you didn't manually register an `Events` class to listen.
 
 Version 0.3.1:
-- Quick update just added `ctx.deleteMessage(id)` because i forgor to add it before :sku:
+- Quick update just added `ctx.deleteMessage(id)` because i forgor to add it before 💀
 
 Version 0.3.0:
 - More events in the `Events` class work now, also `self.allGuilds` in the `Client` class now updates on related events like guild member join/leave and guild add/remove
@@ -190,48 +190,44 @@ Version 0.3.0:
 - Command args should now fully work, you do not need to add a default value to parameters and some annotations (namely `str`,`int`, and `hummus.member.User`) now work
 - The `Author` class has been renamed to the `User` class because most use cases within the package do not reflect the "Author" status of a user (this should not affect much of anything since annotations did not work before this update)
 
-Here's the old version Changelogs, wrote by [ErrorOliver](https://ErrorOliver.lol).
+Older changelogs, written by [ErrorOliver](https://ErrorOliver.lol).
 
 Version 0.2.0 (Oct 17, 2023):
-- Adds a new category called "Moderation Commands (or commands requiring permissions)" with examples.
-- Adds file fixes and permissions in `allguild.py`, `funcs.py`, `guild.py`, `member.py`, `message.py`, `permissions.py`. It also removes 2 files: `author.py` and `role.py`.
+- Added a new Moderation section in the README.
+- Added file fixes and permissions in multiple files.
+- Removed 2 files: `author.py` and `role.py`.
 - Gitlab failed to push stuff in perms update woooo!!! Fixed now!
-- Clarifies that there is a lot of missing events in the readme file.
-- Adds `kwargs` argument stuff.
-- Imports json and does some useragent stuff and header stuff with guild member things in `member.py`.
+- Added custom argument stuff for commands.
+- Request header updates in `member.py` file.
 
 Version 0.0.6-0.1.9
 - Unknown.
 
 Version 0.0.5 (Oct 12, 2023):
-- Adds slightly more detail in the readme file with saying its an asynchronous wrapper instead of just saying its a wrapper.
-- Changes the example code a bit to do some asynchronous stuff, and says about new commands by creating new functions. A new category called "Arguments" explains about arguments and how theres 2 ways to create arguments. Also adds a space under the installation title to make it look better.
-- Fixes a typo with the first example where `Client` is spelt as `CLient`.
-- Fixes example 2 (uses `getUser` function where you can get any user with their ID)
-- Adds type hinting in the `Client` class to ensure the events object is handled correctly.
-- Adds some websocket (json stuff), event, status, asynchronous, and message stuff
-- Adds some more logic in `message.py` and with the guild id, it now checks if `self.dm` is false. If `self.guild` is `None` it will set it to `True`.
-- Replaces `os` with `inspect` and adds parsing a command string and can be passed to a given function as keyword arguments (`kwargs`) and also does something to pass arguments using `kwargs`.
+- README update, including fixes and new sections.
+- Added type hinting in the `Client` class to ensure the events object is handled correctly.
+- Added some websocket, event, status, asynchronous, and message stuff.
+- `Message` object now checks if it belongs in a guild or not. New `dm` attribute.
+- Added parsing a command string to pass arguments using `kwargs`.
 
 Version 0.0.4 (Oct 11, 2023):
-- Does something with message mentions and also adds the mention and CDN and sends it off to the main thing (Also prints the data)
-- Changed the example code to include the ID to make it work for the new changes.
-- Adds "Commands" title to the readme file and an events example. It is currently WIP as of writing this.
-- Adds events, only has `self` and `message`.
-- Adds guild info (`id`, `name`, `icon`, `owner_id`, `features`, `region`, `roles`, `cdn`, `emojis`, `voice_states`, and `afk_timeout`).
-- Adds websocket, exceptions support, time, events (imports events and adds events to the client class), fixes API url not having a slash at the end
-- Allows the bot to reconnect with a new reconnect flag to resume the previous session if it disconnects and tracking the sequence number (`seq`) and session id (`session`) for doing that.
-- Fixes a bug where it would crash if a command is not found.
-- Does more exception logic in `message.py` and getting the guild info.
-- Adds role detection (`id`, `name`, `color`, `permissions`, `mentionable`, `hoist`, and `position`)
+- README update.
+- Message mentions update, I think.
+- Added dedicated `Events` class in its respective file.
+- Added `Guild` class.
+- Added exception logic, fixed API url not having a slash at the end.
+- Added reconnect logic.
+- Fixed a bug where it would crash if a command is not found.
+- More exception logic in `message.py` and getting the guild info.
+- Added `Role` class.
 
 Version 0.0.3 (Oct 10, 2023):
 - Finally on Github.
-- Added support for messages, with the data and all that (`token`, `agent`, `baseurl`, `content`, `channel_id`, `guild_id`, `id`, `mentions`, `attachments`, `embeds`, `edited`, `timestamp`, `pinned`, `mention_everyone`, `tts`, `timestamp`, `webhook_id`, `author`, and `cdn`), replies and useragent.
-- Adds websocket and CDN stuff for hummus.
-- Notices when the bot is added to a server (`GUILD_CREATE`) and when a user sends a message (`MESSAGE_CREATE`) and stuff with prefixes.
-- Renamed `main_3.py` to `main.py`
-- Adds classes for Avatar (`id`, `avatar`, and `url`) and Author (`id`, `username`, `discriminator`, `avatar`, and `bot`)
+- New `Message` class.
+- Added websocket and CDN stuff for hummus.
+- New events added, `GUILD_CREATE` and `MESSAGE_CREATE`.
+- Renamed `main_3.py` to `main.py`. (whoops!)
+- Added `Avatar` and `Author` classes.
 - Plans to push it to pypi (for pip installation) once it's actually decent enough (there is few functions as of now).
 
 Version 0.0.1-0.0.2
