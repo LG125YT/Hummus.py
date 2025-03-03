@@ -182,7 +182,7 @@ Version 0.3.2:
 - Fixed hummus.py not working when you didn't manually register an `Events` class to listen.
 
 Version 0.3.1:
-- Quick update just added `ctx.deleteMessage(id)` because i forgor to add it before :sku:
+- Quick update just added `ctx.deleteMessage(id)` because i forgor to add it before 💀
 
 Version 0.3.0:
 - More events in the `Events` class work now, also `self.allGuilds` in the `Client` class now updates on related events like guild member join/leave and guild add/remove
@@ -190,8 +190,48 @@ Version 0.3.0:
 - Command args should now fully work, you do not need to add a default value to parameters and some annotations (namely `str`,`int`, and `hummus.member.User`) now work
 - The `Author` class has been renamed to the `User` class because most use cases within the package do not reflect the "Author" status of a user (this should not affect much of anything since annotations did not work before this update)
 
+Older changelogs, written by [ErrorOliver](https://ErrorOliver.lol).
 
-Too lazy to log changes from before, if you want to do it for me, go for it.
+Version 0.2.0 (Oct 17, 2023):
+- Added a new Moderation section in the README.
+- Added file fixes and permissions in multiple files.
+- Removed 2 files: `author.py` and `role.py`.
+- Gitlab failed to push stuff in perms update woooo!!! Fixed now!
+- Added custom argument stuff for commands.
+- Request header updates in `member.py` file.
+
+Version 0.0.6-0.1.9
+- Unknown.
+
+Version 0.0.5 (Oct 12, 2023):
+- README update, including fixes and new sections.
+- Added type hinting in the `Client` class to ensure the events object is handled correctly.
+- Added some websocket, event, status, asynchronous, and message stuff.
+- `Message` object now checks if it belongs in a guild or not. New `dm` attribute.
+- Added parsing a command string to pass arguments using `kwargs`.
+
+Version 0.0.4 (Oct 11, 2023):
+- README update.
+- Message mentions update, I think.
+- Added dedicated `Events` class in its respective file.
+- Added `Guild` class.
+- Added exception logic, fixed API url not having a slash at the end.
+- Added reconnect logic.
+- Fixed a bug where it would crash if a command is not found.
+- More exception logic in `message.py` and getting the guild info.
+- Added `Role` class.
+
+Version 0.0.3 (Oct 10, 2023):
+- Finally on Github.
+- New `Message` class.
+- Added websocket and CDN stuff for hummus.
+- New events added, `GUILD_CREATE` and `MESSAGE_CREATE`.
+- Renamed `main_3.py` to `main.py`. (whoops!)
+- Added `Avatar` and `Author` classes.
+- Plans to push it to pypi (for pip installation) once it's actually decent enough (there is few functions as of now).
+
+Version 0.0.1-0.0.2
+- Unknown.
 
 ## Contributing
 Contribute if you want, you can make a pull request on the [GitLab repository](https://gitlab.com/lg125yt/hummus.py) or [GitHub repository](https://github.com/lg125yt/hummus.py), or fork the [Replit project.](https://replit.com/@LG125YT/Hummuspy?v=1) Note that the Replit project is the most recent version of Hummus.py, because it is where I test new features. You can see upcoming features on the Replit project if you want.
