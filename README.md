@@ -66,6 +66,12 @@ I am LG125YT#2241 on Hummus, and @ytlg on Discord. My email is [lg125yt@gmail.co
 
 ### Changelog
 
+Version 1.1.4:
+- Bug fix where amount of messages to fetch in get_messages would be ignored. (Authored by @LmTechyTEMOG)
+
+Version 1.1.3:
+- Bug fix to apply mention regex filter to message edits.
+
 Version 1.1.2:
 - Bug fix about too many arguments being passed through internally.
 
