@@ -37,7 +37,7 @@ class hChannel:
 
 	async def get_messages(self,channel_id:str,limit:int=50) -> List[Message]:
 		from ... import HTTPStatus
-		r = self.s.get(url=f"{self.instance.base_url}channels/{channel_id}/messages/",json={"limit":limit})
+		r = self.s.get(url=f"{self.instance.base_url}channels/{channel_id}/messages/?limit={limit}",json={"limit":limit})
 		s = HTTPStatus(r)
 		if s.success:
 			return [Message(message,self.instance) for message in r.json()]
