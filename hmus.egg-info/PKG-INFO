@@ -1,3 +1,41 @@
+Metadata-Version: 2.4
+Name: hmus
+Version: 1.1.4
+Summary: An asynchronous API wrapper for Hummus by Ziad87
+Home-page: https://github.com/LG125YT/Hummus.py
+Author: LG125YT
+Author-email: lg125yt@gmail.com
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Description-Content-Type: text/markdown
+Requires-Dist: datetime
+Requires-Dist: asyncio
+Requires-Dist: fake_useragent
+Requires-Dist: websockets
+Requires-Dist: requests
+Requires-Dist: requests_toolbelt
+Requires-Dist: filetype
+Requires-Dist: Pillow
+Requires-Dist: typing
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: requires-dist
+Dynamic: summary
+
 # Hummus.py
 
 This is an asynchronous wrapper currently in version 1.1.4!

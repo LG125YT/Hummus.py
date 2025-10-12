@@ -1,0 +1,9 @@
+datetime
+asyncio
+fake_useragent
+websockets
+requests
+requests_toolbelt
+filetype
+Pillow
+typing
