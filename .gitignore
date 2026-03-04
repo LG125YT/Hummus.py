@@ -1,1 +1,7 @@
-dist/*
+build
+dist
+.gitignore
+*/__pycache__/
+test.py
+hummus2016.py.egg-info/
+hmus.egg-info/

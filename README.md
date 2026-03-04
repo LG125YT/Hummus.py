@@ -1,12 +1,21 @@
 # Hummus.py
 
-This is an asynchronous wrapper currently in version 1.1.4!
+This is an asynchronous wrapper currently in version 1.1.5!
 
-You can read the official documentation. It is unfinished, so you can currently find it in the `docs` folder of the [Github](https://github.com/LG125YT/Hummus.py). The [Gitlab](https://gitlab.com/lg125yt/hummus.py) repository is currently unmaintained. We will have a ReadTheDocs page soon.
+You can read the official documentation. It is unfinished, so you can currently find it in the `docs` directory of the [GitHub](https://github.com/LG125YT/Hummus.py). We will have a ReadTheDocs page when it is in a better state.
 
 ## Installation
 
 You can do `pip install hummus2016.py` to install Hummus.py as a package (you can also use its mirror package, `hmus`), or you can import it manually by downloading the files from the repository.
+
+If you clone this repository, you can find a `requirements.txt` and `test.py` file that you can run to make sure everything can run smoothly.
+```sh
+pip install -r requirements.txt
+python3 test.py
+```
+Do make sure to replace the placeholder token string with a real token if you want it to actually connect.
+```
+```
 
 ## Getting started
 
@@ -40,9 +49,26 @@ class Cmds(Commands):
 		await ctx.reply("test!")
 ```
 
-For more information, please refer to our Readthedocs page (coming soon).
+For more information, please refer to our documentation.
 
 ## Other important notes
+
+### Other Websites
+
+In the case where you are interacting with a similar API that is not Hummus's (ex: Oldcord), you are easily able to change the API url to point to there instead.
+
+```py
+import hummus
+import asyncio
+
+bot = Client(token="BOT_TOKEN_HERE", url="https://staging.oldcordapp.com/api/v6/")
+
+asyncio.run(bot.run())
+```
+
+The library also makes the assumption that the website's CDN domain is simply the current domain but with a "-cdn" attached (ex: "hummus.sys42.net" -> "hummus-cdn.sys42.net"). This will change in the future, but for now, you may similarly override this by providing a CDN url with the `cdn` parameter (`Client(token="BOT_TOKEN_HERE", cdn="https://staging.oldcordapp.com/")`).
+```
+```
 
 ### Arguments
 
@@ -54,10 +80,11 @@ Quotation marks are not necessary for arguments with no spaces!
 
 ### Features
 
-**Please** read the official documentation. It is unfinished, so you can currently find it in the `docs` folder of the [Github](https://github.com/LG125YT/Hummus.py) repository. If you still need help, look below for ways to contact me.
+**Please** read the official documentation. It is unfinished, so you can currently find it in the `docs` folder of the [GitHub](https://github.com/LG125YT/Hummus.py) repository. If you still need help, look below for ways to contact me.
 
 ### Support
-I am LG125YT#2241 on Hummus, and @ytlg on Discord. My email is [lg125yt@gmail.com](mailto:lg125yt@gmail.com), though I may not check it much.
+
+I do not check Hummus. You can find me on Discord (`@ytlg`) or Oldcord (no DMs). My email is [lg125yt@gmail.com](mailto:lg125yt@gmail.com), though I may not check it much.
 
 ## Credits
  - [Fossbotpy](https://gitlab.com/arandomnewaccount/fossbotpy) by arandomnewaccount, used parts of it in in `hummus.utils.Enums.Colors` and `hummus.File` processing.
@@ -66,9 +93,13 @@ I am LG125YT#2241 on Hummus, and @ytlg on Discord. My email is [lg125yt@gmail.co
 
 ### Changelog
 
+Version 1.1.5:
+- Fix all indentation
+- Fixes for Oldcord
+- Better typing
+
 Version 1.1.4:
 - Bug fix where amount of messages to fetch in get_messages would be ignored. (Authored by @LmTechyTEMOG)
-- Indenting fix (whoopsies)
 
 Version 1.1.3:
 - Bug fix to apply mention regex filter to message edits.
@@ -118,7 +149,7 @@ Version 0.7.0:
 - New `Attachment` class, a `Message` object will now have a list of attachment objects. Attachment objects have the attributes `id`, `filename`, `size`, `url`, `proxy_url`, `height`, and `width`. Man I really need a readthedocs page or something.
 
 Version 0.6.6, 0.6.7:
-- IM SORRY IM SORRY IM SORRY ILL TEST MY SCRIPTS, IM SORRY PYTHON GODS, WHY, WHY, WHYYYYYYYYYYYYYYYYYYYYYYYYYYYY (yes i tested the script this time)
+- the python gods cursed me because i did not test my scripts lol. some bug fixes ig.
 
 Version 0.6.5:
 - Perm checking now actually works hopefully (yay i love publishing untested scripts)
@@ -241,7 +272,7 @@ Version 0.0.1-0.0.2
 - Unknown.
 
 ## Contributing
-Contribute if you want, you can make a pull request on the [GitLab repository](https://gitlab.com/lg125yt/hummus.py) or [GitHub repository](https://github.com/lg125yt/hummus.py), or fork the [Replit project.](https://replit.com/@LG125YT/Hummuspy?v=1) Note that the Replit project is the most recent version of Hummus.py, because it is where I test new features. You can see upcoming features on the Replit project if you want.
+Contribute if you want, you can make a pull request on the [GitHub repository.](https://github.com/lg125yt/hummus.py) I try to keep a working version of Hummus.py on the master branch, check to see if there are other branches where features are being worked on.
 
 ## Authors
-This wrapper was made by LG125YT. Contact me on Hummus (LG125YT#2241) or Discord (@ytlg).
+This wrapper was made by LG125YT. Contact me on Discord (`@ytlg`) or Oldcord.
