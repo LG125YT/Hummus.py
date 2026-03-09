@@ -266,9 +266,9 @@ class PartialGuild(InvitePartialGuild):
 class Channel(PartialChannel):
     def __init__(self, data, instance):
         from .user import User
-        super().__init__(data, data['guild_id'], instance)
+        super().__init__(data, data.get('guild_id'), instance)
         self.instance = instance
-        self.guild_id: Union[str, None] = data['guild_id']  # always exists
+        self.guild_id: Union[str, None] = data.get('guild_id')
         self.last_message_id: Union[str, None] = data.get('last_message_id')  # text-based
         self.topic: Union[str, None] = data.get('topic')  # text
         self.nsfw: Union[bool, None] = bool(data.get('nsfw'))  # text

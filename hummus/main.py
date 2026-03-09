@@ -156,11 +156,12 @@ class Client:
         else:
             raise TypeError("Commands must be of type Commands.")
         self.s: requests.Session = requests.session()
-        self.s.headers = {"Authorization": token, "Content-Type": "application/json", "User-Agent": agent}
+        self.s.headers = {"Authorization": token, "Content-Type": "application/json", "User-Agent": agent,
+                          "cookie": "default_client_build=october_5_2017; release_date=october_5_2017; enabled_patches=[\"emojiAnywhere\",\"modernizeWebRTC\"]; enabled_plugins=[\"changeURLs\",\"httpInLocal\",\"noTrack\",\"replaceDiscordText\"]; legal_agreed=true; locale=en-US"}
         self.http: HTTP = HTTP(self)
         if not url.endswith("/"):
             url = url + "/"
-        e = requests.get(url + "gateway", headers={"User-Agent": agent})
+        e = self.s.get(url + "gateway")
         if e.json().get('url'):  # type: ignore[x]
             self.websocket = e.json()['url'] + "?api=v6&encoding=json"
             if not self.websocket.startswith("wss://"):
@@ -184,22 +185,30 @@ class Client:
         self.user: Self
         self.__start_time: datetime
         self.state: Ready
+        self._event_debug: bool = True
 
     def __log(self, message: str):  # this will likely have file logging functionality at some point
         if self.settings.logging:
             print(message)
 
+    def _send_beats(self, interval: int):
+        while True:
+            try:
+                time.sleep(interval / 1000)
+                self.__start_time = datetime.now()
+                self.connection.send(json.dumps({"op": 1}))
+            except websockets.exceptions.ConnectionClosed:
+                return
+
     async def run(self):
-        reconnect = False
-        last_event = None
         session = ""
         seq: str | None = None
         while True:
             try:
-                with connect(self.websocket, additional_headers=self.s.headers, user_agent_header=ua.random, max_size=None) as websocket:
+                with connect(self.websocket, additional_headers=self.s.headers, user_agent_header=ua.random, max_size=None) as websocket:  # type: ignore[x]
                     self.connection = websocket
                     self.__log("\033[32mrestarting...\033[0m")
-                    if reconnect:
+                    if seq:
                         self.__log(f"\033[32mResuming session with sequence ID {seq}\033[0m")
                         websocket.send(json.dumps({"d": {"token": self.token, "session_id": session, "seq": seq}, "op": 6}))
                     else:
@@ -207,15 +216,12 @@ class Client:
 
                     while True:
                         event: dict[str, typing.Any] = json.loads(websocket.recv())  # type: ignore[x]
-                        if reconnect:
+                        if self._event_debug:
                             print(event)
                         if event.get('s'):
                             seq = event['s']
                         if not event.get('t'):
                             event['t'] = None
-
-                        if event['t']:
-                            last_event = event
 
                         if event['t'] == "READY":
                             session = event['d']['session_id']
@@ -231,6 +237,9 @@ class Client:
                         if event['op'] == 1:
                             self.__start_time = datetime.now()
                             websocket.send(json.dumps({"op": 1}))
+
+                        if event['op'] == 10:
+                            thread.start_new_thread(self._send_beats, (event['d']['heartbeat_interval'],))
 
                         if event['op'] == 11:
                             passed = datetime.now() - self.__start_time
@@ -537,16 +546,14 @@ class Client:
                                             if args[0] in str(e):
                                                 print(f"\033[31mCommand '{args[0]}' not found as a command or alias.\033[0m")
             except websockets.exceptions.ConnectionClosed as e:
-                if e.code == 4004:
+                if e.code == 4004:  # TODO: Comprehensive list of codes that should not attempt to reconnect
                     print("\033[31mRecieved invalid token from server, exiting.\033[0m")
                     quit()
-                print(f"some gateway close happened: {e}\nLast event: {last_event}\nAt: {datetime.now()}")
+                print(f"some gateway close happened: {e}\nAt: {datetime.now()}")
                 traceback.print_exc()
-                reconnect = True
             except Exception as e:
                 print(f"\033[31mDisconnected with error {e}, reconnecting...\033[0m")
                 traceback.print_exc()
-                reconnect = True
                 time.sleep(5)
 
     async def get_prefix(self, message: Message):

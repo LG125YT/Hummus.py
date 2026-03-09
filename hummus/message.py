@@ -51,7 +51,7 @@ class Message:
         self.mention_everyone: bool = data['mention_everyone']
         self.tts: bool = data['tts']
         self.timestamp: str = data['timestamp']
-        self.webhook_id: Union[str, None] = data['webhook_id']
+        self.webhook_id: Union[str, None] = data.get('webhook_id')
 
     async def typing(self) -> None:
         return await self.instance.http.start_typing(self.channel_id)

@@ -1,7 +1,7 @@
 build
 dist
 .gitignore
-*/__pycache__/
-test.py
+.env
+**/__pycache__/
 hummus2016.py.egg-info/
 hmus.egg-info/

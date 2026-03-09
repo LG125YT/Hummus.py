@@ -1,34 +1,45 @@
 import random
+import typing
 
 
+@typing.final
 class Enums:
+    @typing.final
     class Presence:
         online = "online"
         idle = "idle"
         do_not_disturb = "dnd"
         invisible = "invisible"
 
+    @typing.final
     class Status:
         playing = 1
         listening_to = 2
         watching = 3
 
+    @typing.final
     class Channel:
         text = 0
         dm = 1
         voice = 2
         gc = 3
 
+    @typing.final
     class DefaultAvatars:
-        all = ("https://hummus.sys42.net/assets/6debd47ed13483642cf09e832ed0bc1b.png", "https://hummus.sys42.net/assets/322c936a8c8be1b803cd94861bdfa868.png", "https://hummus.sys42.net/assets/dd4dbc0016779df1378e7812eabaa04d.png",
-               # cause ziad is stupid and didnt put the default avatars under /embeds/avatars
-               "https://hummus.sys42.net/assets/0e291f67c9274a1abdddeb3fd919cbaa.png", "https://hummus.sys42.net/assets/1cbd08c76f8af6dddce02c5138971129.png")
+        all = (
+            "https://hummus.sys42.net/assets/6debd47ed13483642cf09e832ed0bc1b.png",
+            "https://hummus.sys42.net/assets/322c936a8c8be1b803cd94861bdfa868.png",
+            "https://hummus.sys42.net/assets/dd4dbc0016779df1378e7812eabaa04d.png",
+            "https://hummus.sys42.net/assets/0e291f67c9274a1abdddeb3fd919cbaa.png",
+            "https://hummus.sys42.net/assets/1cbd08c76f8af6dddce02c5138971129.png"
+        )  # cause ziad for some reason didnt put the default avatars under /embeds/avatars
         blue = "https://hummus.sys42.net/assets/6debd47ed13483642cf09e832ed0bc1b.png"
         gray = "https://hummus.sys42.net/assets/322c936a8c8be1b803cd94861bdfa868.png"
         green = "https://hummus.sys42.net/assets/dd4dbc0016779df1378e7812eabaa04d.png"
         yellow = "https://hummus.sys42.net/assets/0e291f67c9274a1abdddeb3fd919cbaa.png"
         red = "https://hummus.sys42.net/assets/1cbd08c76f8af6dddce02c5138971129.png"
 
+    @typing.final
     class Permissions:
         add_reactions = "add_reactions"
         administrator = "administrator"
@@ -59,6 +70,7 @@ class Enums:
         use_voice_activation = "use_voice_activation"
 
     # copied from fossbotpy lol
+    @typing.final
     class Colors:
         default = 0  # just another name for black ig
         aqua = 0x1ABC9C

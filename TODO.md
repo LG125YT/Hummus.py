@@ -9,3 +9,4 @@ list is definitely missing stuff. add as we go.
 [ ] figure out typing for the decorator
 [ ] bring in patches from current Oldcord test/proof-of-concept
 [ ] figure out the stupid stuff i did in my code years ago
+[ ] use heartbeat_interval to automatically send heartbeats to the server

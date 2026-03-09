@@ -14,8 +14,6 @@ pip install -r requirements.txt
 python3 test.py
 ```
 Do make sure to replace the placeholder token string with a real token if you want it to actually connect.
-```
-```
 
 ## Getting started
 
@@ -67,8 +65,6 @@ asyncio.run(bot.run())
 ```
 
 The library also makes the assumption that the website's CDN domain is simply the current domain but with a "-cdn" attached (ex: "hummus.sys42.net" -> "hummus-cdn.sys42.net"). This will change in the future, but for now, you may similarly override this by providing a CDN url with the `cdn` parameter (`Client(token="BOT_TOKEN_HERE", cdn="https://staging.oldcordapp.com/")`).
-```
-```
 
 ### Arguments
 
