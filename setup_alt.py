@@ -7,7 +7,7 @@ twine upload dist/*
 
 setup(
     name='hmus',
-    version='1.1.5',
+    version='1.2',
     author='LG125YT',
     author_email='lg125yt@gmail.com',
     description='An asynchronous API wrapper for Hummus by Ziad87',
@@ -20,11 +20,10 @@ setup(
         "asyncio",
         "fake_useragent",
         "websockets",
-        "requests",
-        "requests_toolbelt",
         "filetype",
         "Pillow",
-        "typing"
+        "typing",
+        "aiohttp[speedups]"
     ],
     classifiers=[
         'Development Status :: 4 - Beta',

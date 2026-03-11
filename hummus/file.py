@@ -59,7 +59,7 @@ class File:
             from .utils import Exceptions
             raise Exceptions.FileError(f"Invalid file type: {type(file)}. Please pass a file object, bytes, BytesIO or string.")
 
-        self.fields = {"file": thing, "payload_json": None}
+        self.fields = {"file": thing}
         self.file_json = {"filename": filename, "Content-Type": thing[2]}
 
     async def get_file_data(self) -> bytes:

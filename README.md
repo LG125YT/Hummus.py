@@ -1,6 +1,6 @@
 # Hummus.py
 
-This is an asynchronous wrapper currently in version 1.1.5!
+This is an asynchronous wrapper currently in version 1.1.4!
 
 You can read the official documentation. It is unfinished, so you can currently find it in the `docs` directory of the [GitHub](https://github.com/LG125YT/Hummus.py). We will have a ReadTheDocs page when it is in a better state.
 
@@ -32,9 +32,11 @@ class Client(hummus.Client):
 		if "ping" in message.content.lower():
 			await message.send("pong")
 
-bot = Client(token="BOT_TOKEN_HERE")
+async def main():
+  async with Client(token="BOT_TOKEN_HERE") as bot:
+    await bot.run()
 
-asyncio.run(bot.run())
+asyncio.run(main())
 ```
 
 If you don't want to use the `on_message_create` event class to detect for commands, you can import `Commands` from `hummus.utils` and create functions under that. (remember: In every function, you must have the `self` and `ctx` parameters!):
@@ -56,12 +58,8 @@ For more information, please refer to our documentation.
 In the case where you are interacting with a similar API that is not Hummus's (ex: Oldcord), you are easily able to change the API url to point to there instead.
 
 ```py
-import hummus
-import asyncio
-
-bot = Client(token="BOT_TOKEN_HERE", url="https://staging.oldcordapp.com/api/v6/")
-
-asyncio.run(bot.run())
+async with Client(token="BOT_TOKEN_HERE", url="https://staging.oldcordapp.com/api/v6/") as bot:
+  await bot.run()
 ```
 
 The library also makes the assumption that the website's CDN domain is simply the current domain but with a "-cdn" attached (ex: "hummus.sys42.net" -> "hummus-cdn.sys42.net"). This will change in the future, but for now, you may similarly override this by providing a CDN url with the `cdn` parameter (`Client(token="BOT_TOKEN_HERE", cdn="https://staging.oldcordapp.com/")`).
@@ -89,10 +87,15 @@ I do not check Hummus. You can find me on Discord (`@ytlg`) or Oldcord (no DMs).
 
 ### Changelog
 
-Version 1.1.5:
+Version 1.2: \[UPCOMING: this message will be changing a lot\]
 - Fix all indentation
 - Fixes for Oldcord
 - Better typing
+- Fully async now
+  - Ditched all threading
+  - Switched to async websocket
+  - Replaced `requests` lib with `aiohttp`
+  - Now required to create bot client using `async with`
 
 Version 1.1.4:
 - Bug fix where amount of messages to fetch in get_messages would be ignored. (Authored by @LmTechyTEMOG)

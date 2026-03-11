@@ -1,10 +1,9 @@
 # welcome to stupidity central
 import websockets
-from websockets.sync.client import connect, Connection
-import _thread as thread
+from websockets.asyncio.client import connect, Connection
 import fake_useragent
 import traceback
-import requests
+import aiohttp
 import inspect
 import asyncio
 import json
@@ -18,7 +17,6 @@ from .guild import Channel, Emoji
 from .message import Message
 from .ready import Ready, Self
 from .role import Role
-from .http import HTTP
 
 from datetime import datetime
 
@@ -139,31 +137,22 @@ default_status = CustomStatus(type=0)
 
 
 class Client:
-    def __init__(self, token: str, commands: Commands | None = None, url: str = "https://hummus.sys42.net/api/v6/", cdn: str | None = None, custom_status: CustomStatus = default_status, exception_handler: CustomizableExceptions = default_exceptions, settings: ClientSettings = default_settings):
-        self.websocket: str = ""
-        self.connection: Connection
-        self.ping: str | None = None
-        self.custom_exceptions: CustomizableExceptions = exception_handler
-        self.commands: Commands | None = commands
-        self.settings: ClientSettings = settings
-        self.prefix: str | None
-        self.cdn: str | None
-        if isinstance(commands, Commands):
-            self.prefix = commands.prefix
-            self.commands.instance = self  # type: ignore[x]
-        elif commands is None:
-            self.prefix = None
-        else:
-            raise TypeError("Commands must be of type Commands.")
-        self.s: requests.Session = requests.session()
-        self.s.headers = {"Authorization": token, "Content-Type": "application/json", "User-Agent": agent,
-                          "cookie": "default_client_build=october_5_2017; release_date=october_5_2017; enabled_patches=[\"emojiAnywhere\",\"modernizeWebRTC\"]; enabled_plugins=[\"changeURLs\",\"httpInLocal\",\"noTrack\",\"replaceDiscordText\"]; legal_agreed=true; locale=en-US"}
-        self.http: HTTP = HTTP(self)
+    async def __aenter__(self):  # , token: str, commands: Commands | None = None, url: str = "https://hummus.sys42.net/api/v6/", cdn: str | None = None, custom_status: CustomStatus = default_status, exception_handler: CustomizableExceptions = default_exceptions, settings: ClientSettings = default_settings) -> Client:
+        from .http import HTTP
+        self.s = aiohttp.ClientSession(
+            headers={
+                "Authorization": self.token, "Content-Type": "application/json", "User-Agent": agent,
+                "cookie": "default_client_build=october_5_2017; release_date=october_5_2017; enabled_patches=[\"emojiAnywhere\",\"modernizeWebRTC\"]; enabled_plugins=[\"changeURLs\",\"httpInLocal\",\"noTrack\",\"replaceDiscordText\"]; legal_agreed=true; locale=en-US"
+            }
+        )
+        url = self.base_url
+        cdn = self.cdn
+        self.http = HTTP(self)
         if not url.endswith("/"):
             url = url + "/"
-        e = self.s.get(url + "gateway")
-        if e.json().get('url'):  # type: ignore[x]
-            self.websocket = e.json()['url'] + "?api=v6&encoding=json"
+        e = await self.s.get(url + "gateway")
+        if (await e.json()).get('url'):  # type: ignore[x]
+            self.websocket = (await e.json())['url'] + "?api=v6&encoding=json"
             if not self.websocket.startswith("wss://"):
                 self.websocket = "wss://" + self.websocket
         else:
@@ -177,6 +166,38 @@ class Client:
             self.cdn = cdn.replace("api/", "").replace("v6/", "")
         if not self.cdn.endswith("/"):
             self.cdn = cdn + "/"
+        self.base_url = url
+        self.cdn = cdn
+        return self
+
+    async def __aexit__(self, exec_type, exc, tb):
+        await self.s.close()
+
+    def __init__(self, token: str, commands: Commands | None = None, url: str = "https://hummus.sys42.net/api/v6/", cdn: str | None = None, custom_status: CustomStatus = default_status, exception_handler: CustomizableExceptions = default_exceptions, settings: ClientSettings = default_settings):
+        from .http import HTTP
+        self.websocket: str = ""
+        self.connection: Connection
+        self.ping: str | None = None
+        self.custom_exceptions: CustomizableExceptions = exception_handler
+        self.commands: Commands | None = commands
+        self.settings: ClientSettings = settings
+        self.prefix: str | None
+        self.cdn: str | None = cdn
+        self.s: aiohttp.ClientSession
+        self.http: HTTP
+        if isinstance(commands, Commands):
+            self.prefix = commands.prefix
+            self.commands.instance = self  # type: ignore[x]
+        elif commands is None:
+            self.prefix = None
+        else:
+            raise TypeError("Commands must be of type Commands.")
+        # self.s: aiohttp.ClientSession = aiohttp.ClientSession(
+        #    headers={
+        #        "Authorization": token, "Content-Type": "application/json", "User-Agent": agent,
+        #        "cookie": "default_client_build=october_5_2017; release_date=october_5_2017; enabled_patches=[\"emojiAnywhere\",\"modernizeWebRTC\"]; enabled_plugins=[\"changeURLs\",\"httpInLocal\",\"noTrack\",\"replaceDiscordText\"]; legal_agreed=true; locale=en-US"
+        #    }
+        # )
         self.status: dict[str, bool | str | dict[str, str | int | None] | None]
         self.status = custom_status._toJson()  # type: ignore[x]
         self.token: str = token
@@ -191,12 +212,12 @@ class Client:
         if self.settings.logging:
             print(message)
 
-    def _send_beats(self, interval: int):
+    async def _send_beats(self, interval: int):
         while True:
             try:
-                time.sleep(interval / 1000)
+                await asyncio.sleep(interval / 1000)
                 self.__start_time = datetime.now()
-                self.connection.send(json.dumps({"op": 1}))
+                await self.connection.send(json.dumps({"op": 1}))
             except websockets.exceptions.ConnectionClosed:
                 return
 
@@ -205,17 +226,17 @@ class Client:
         seq: str | None = None
         while True:
             try:
-                with connect(self.websocket, additional_headers=self.s.headers, user_agent_header=ua.random, max_size=None) as websocket:  # type: ignore[x]
+                async with connect(self.websocket, additional_headers=self.s.headers, user_agent_header=ua.random, max_size=None) as websocket:  # type: ignore[x]
                     self.connection = websocket
                     self.__log("\033[32mrestarting...\033[0m")
                     if seq:
                         self.__log(f"\033[32mResuming session with sequence ID {seq}\033[0m")
-                        websocket.send(json.dumps({"d": {"token": self.token, "session_id": session, "seq": seq}, "op": 6}))
+                        await websocket.send(json.dumps({"d": {"token": self.token, "session_id": session, "seq": seq}, "op": 6}))
                     else:
-                        websocket.send(json.dumps({'op': 2, 'd': {'token': self.token, 'presence': self.status}}))
+                        await websocket.send(json.dumps({'op': 2, 'd': {'token': self.token, 'presence': self.status}}))
 
                     while True:
-                        event: dict[str, typing.Any] = json.loads(websocket.recv())  # type: ignore[x]
+                        event: dict[str, typing.Any] = json.loads(await websocket.recv())  # type: ignore[x]
                         if self._event_debug:
                             print(event)
                         if event.get('s'):
@@ -229,35 +250,35 @@ class Client:
                             self.state = Ready(event['d'], self)
                             self.user = self.state.user
                             self.__start_time = datetime.now()
-                            websocket.send(json.dumps({"op": 1}))
+                            await websocket.send(json.dumps({"op": 1}))
                             if not self.state.guilds_are_unavailable:
                                 self.guilds = self.state.guilds
-                            thread.start_new_thread(asyncio.run, (self.on_ready(self.state),))
+                            asyncio.create_task(self.on_ready(self.state))
 
                         if event['op'] == 1:
                             self.__start_time = datetime.now()
-                            websocket.send(json.dumps({"op": 1}))
+                            await websocket.send(json.dumps({"op": 1}))
 
                         if event['op'] == 10:
-                            thread.start_new_thread(self._send_beats, (event['d']['heartbeat_interval'],))
+                            asyncio.create_task(self._send_beats(event['d']['heartbeat_interval']))
 
                         if event['op'] == 11:
                             passed = datetime.now() - self.__start_time
                             self.ping = f"{passed.total_seconds() * 1000} ms"
 
                         if event['t'] == "CHANNEL_PINS_UPDATE":
-                            thread.start_new_thread(asyncio.run, (self.channel_pins_update(event['d']['channel_id'], event['d'].get('last_pin_timestamp')),))
+                            asyncio.create_task(self.channel_pins_update(event['d']['channel_id'], event['d'].get('last_pin_timestamp')))
 
                         if event['t'] == "GUILD_BAN_ADD":
                             for guild in self.guilds:
                                 if guild.id == event['d']['guild_id']:
-                                    thread.start_new_thread(asyncio.run, (self.on_guild_ban_add(guild, User(event['d']['user'], self, event['d']['guild_id'])),))
+                                    asyncio.create_task(self.on_guild_ban_add(guild, User(event['d']['user'], self, event['d']['guild_id'])))
                                     break
 
                         if event['t'] == "GUILD_BAN_REMOVE":
                             for guild in self.guilds:
                                 if guild.id == event['d']['guild_id']:
-                                    thread.start_new_thread(asyncio.run, (self.on_guild_ban_remove(guild, User(event['d']['user'], self, event['d']['guild_id'])),))
+                                    asyncio.create_task(self.on_guild_ban_remove(guild, User(event['d']['user'], self, event['d']['guild_id'])))
                                     break
 
                         if event['t'] == "TYPING_START":
@@ -284,7 +305,7 @@ class Client:
                                                 member = user
                                                 break
                                         break
-                            thread.start_new_thread(asyncio.run, (self.on_typing_start(is_guild, channel, member, event['d']['timestamp']),))
+                            asyncio.create_task(self.on_typing_start(is_guild, channel, member, event['d']['timestamp']))
 
                         if event['t'] == "GUILD_MEMBER_UPDATE":
                             guild_idx = 0
@@ -295,7 +316,7 @@ class Client:
                                         if member.id == event['d']['id']:
                                             new_member = Member(event['d'], event['d']['guild_id'], self)
                                             self.guilds[guild_idx].members[member_idx] = new_member
-                                            thread.start_new_thread(asyncio.run, (self.on_guild_member_update(member, new_member),))
+                                            asyncio.create_task(self.on_guild_member_update(member, new_member))
                                             break
                                         member_idx += 1
                                     break
@@ -307,7 +328,7 @@ class Client:
                                 if guild.id == event['d']['id']:
                                     updated_guild = PartialGuild(event['d'], self)
                                     self.guilds[guild_idx]._update_data(updated_guild)
-                                    thread.start_new_thread(asyncio.run, (self.on_guild_update(guild, updated_guild),))
+                                    asyncio.create_task(self.on_guild_update(guild, updated_guild))
                                     break
                                 guild_idx += 1
 
@@ -318,7 +339,7 @@ class Client:
                                     before = guild.emojis
                                     after = [Emoji(emoji, self) for emoji in event['d']['emojis']]
                                     self.guilds[guild_idx].emojis = after
-                                    thread.start_new_thread(asyncio.run, (self.on_guild_emojis_update(guild, before, after),))
+                                    asyncio.create_task(self.on_guild_emojis_update(guild, before, after))
                                     break
                                 guild_idx += 1
 
@@ -331,7 +352,7 @@ class Client:
                                         if role.id == event['d']['role']['id']:
                                             new_role = Role(event['d']['role'], event['d']['guild_id'], self)
                                             self.guilds[guild_idx].roles[role_idx] = new_role
-                                            thread.start_new_thread(asyncio.run, (self.on_guild_role_update(guild, role, new_role),))
+                                            asyncio.create_task(self.on_guild_role_update(guild, role, new_role))
                                             break
                                         role_idx += 1
                                     break
@@ -343,7 +364,7 @@ class Client:
                                 if guild.id == event['d']['guild_id']:
                                     new_role = Role(event['d']['role'], event['d']['guild_id'], self)
                                     self.guilds[guild_idx].roles.append(new_role)
-                                    thread.start_new_thread(asyncio.run, (self.on_guild_role_create(guild, new_role),))
+                                    asyncio.create_task(self.on_guild_role_create(guild, new_role))
                                     break
                                 guild_idx += 1
 
@@ -356,7 +377,7 @@ class Client:
                                         if role.id == event['d']['role_id']:
                                             deleted_role = role
                                             self.guilds[guild_idx].roles.pop(role_idx)
-                                            thread.start_new_thread(asyncio.run, (self.on_guild_role_delete(guild, deleted_role),))
+                                            asyncio.create_task(self.on_guild_role_delete(guild, deleted_role))
                                             break
                                         role_idx += 1
                                     break
@@ -367,13 +388,13 @@ class Client:
                                 if dm.id == event['d']['id']:
                                     channel = Channel(event['d'], self)
                                     self.state.private_channels.append(channel)
-                                    thread.start_new_thread(asyncio.run, (self.on_channel_create(None, channel),))
+                                    asyncio.create_task(self.on_channel_create(None, channel))
                             guild_idx = 0
                             for guild in self.guilds:
                                 if guild.id == event['d']['guild_id']:
                                     channel = Channel(event['d'], self)
                                     self.guilds[guild_idx].channels.append(channel)
-                                    thread.start_new_thread(asyncio.run, (self.on_channel_create(guild, channel),))
+                                    asyncio.create_task(self.on_channel_create(guild, channel))
                                     break
                                 guild_idx += 1
 
@@ -386,7 +407,7 @@ class Client:
                                         if channel.id == event['d']['id']:
                                             updated_channel = Channel(event['d'], self)
                                             self.guilds[guild_idx].channels[channel_idx] = updated_channel
-                                            thread.start_new_thread(asyncio.run, (self.on_channel_update(guild, channel, updated_channel),))
+                                            asyncio.create_task(self.on_channel_update(guild, channel, updated_channel))
                                             break
                                         channel_idx += 1
                                     break
@@ -398,7 +419,7 @@ class Client:
                                 for channel in self.state.private_channels:
                                     if channel.id == event['d']['id']:
                                         self.state.private_channels.pop(channel_idx)
-                                        thread.start_new_thread(asyncio.run, (self.on_channel_delete(None, channel),))
+                                        asyncio.create_task(self.on_channel_delete(None, channel))
                                         break
                                     channel_idx += 1
                             guild_idx = 0
@@ -407,7 +428,7 @@ class Client:
                                     for channel in guild.channels:
                                         if channel.id == event['d']['id']:
                                             self.guilds[guild_idx].channels.pop(channel_idx)
-                                            thread.start_new_thread(asyncio.run, (self.on_channel_delete(guild, channel),))
+                                            asyncio.create_task(self.on_channel_delete(guild, channel))
                                             break
                                         channel_idx += 1
                                     break
@@ -423,7 +444,7 @@ class Client:
                                             if presence.user.id == event['d']['user']['id']:
                                                 new_presence = Presence(event['d'], event['d']['guild_id'], self)
                                                 self.guilds[guild_idx].presences[presence_idx] = new_presence
-                                                thread.start_new_thread(asyncio.run, (self.on_presence_update(presence, new_presence),))
+                                                asyncio.create_task(self.on_presence_update(presence, new_presence))
                                                 break
                                             presence_idx += 1
                                         break
@@ -433,19 +454,19 @@ class Client:
                                 for presence in self.state.presences:
                                     if presence.user.id == event['d']['user']['id']:
                                         self.state.presences[presence_idx] = Presence(event['d'], None, self)
-                                        thread.start_new_thread(asyncio.run, (self.on_presence_update(presence, self.state.presences[presence_idx]),))
+                                        asyncio.create_task(self.on_presence_update(presence, self.state.presences[presence_idx]))
 
                         if event['t'] == "GUILD_CREATE":
                             guild = Guild(event['d'], self)
                             self.guilds.append(guild)
-                            thread.start_new_thread(asyncio.run, (self.on_guild_create(guild),))
+                            asyncio.create_task(self.on_guild_create(guild))
 
                         if event['t'] == "GUILD_DELETE":
                             idx = 0
                             for guild in self.guilds:
                                 if guild.id == event['d']['id']:
                                     self.guilds.pop(idx)
-                                    thread.start_new_thread(asyncio.run, (self.on_guild_delete(guild),))
+                                    asyncio.create_task(self.on_guild_delete(guild))
                                     break
                                 idx += 1
 
@@ -455,7 +476,7 @@ class Client:
                             for guild in self.guilds:
                                 if guild.id == event['d']['guild_id']:
                                     self.guilds[idx].members.append(member)
-                                    thread.start_new_thread(asyncio.run, (self.on_guild_member_add(guild, member),))
+                                    asyncio.create_task(self.on_guild_member_add(guild, member))
                                     break
                                 idx += 1
 
@@ -468,7 +489,7 @@ class Client:
                                     for member in self.guilds[idx].members:
                                         if member.id == event['d']['user']['id']:
                                             self.guilds[idx].members.pop(midx)
-                                            thread.start_new_thread(asyncio.run, (self.on_guild_member_remove(guild, member),))
+                                            asyncio.create_task(self.on_guild_member_remove(guild, member))
                                             break
                                         midx += 1
                                     break
@@ -482,10 +503,10 @@ class Client:
                                     if g.id == event['d']['guild_id']:
                                         guild = g
                                         break
-                                thread.start_new_thread(asyncio.run, (self.on_message_delete(event['d']['id'], event['d']['channel_id'], guild),))
+                                asyncio.create_task(self.on_message_delete(event['d']['id'], event['d']['channel_id'], guild))
 
                         if event['t'] == "MESSAGE_UPDATE":
-                            thread.start_new_thread(asyncio.run, (self.on_message_update(Message(event['d'], self)),))
+                            asyncio.create_task(self.on_message_update(Message(event['d'], self)))
 
                         if event['t'] == "MESSAGE_CREATE":
                             message = Message(event['d'], self)
@@ -516,11 +537,11 @@ class Client:
                                 if can_respond:
                                     try:
                                         command = getattr(self.commands, args[0])
-                                        if callable(command) and not "__" in args[0]:
+                                        if callable(command) and "__" not in args[0]:
                                             try:
                                                 command_args = await splitArgs(command, message, self)
                                                 try:
-                                                    thread.start_new_thread(asyncio.run, (command(context, *command_args),))
+                                                    asyncio.create_task(command(context, *command_args))
                                                 except TypeError as e:
                                                     if "required positional argument" in str(e):
                                                         args = str(e).split(": '")[1].replace("'", "").replace(",", "").replace("and", "").split()
@@ -535,7 +556,7 @@ class Client:
                                             try:
                                                 command_args = await splitArgs(command, message, self)
                                                 try:
-                                                    thread.start_new_thread(asyncio.run, (command(context, *command_args),))
+                                                    asyncio.create_task(command(context, *command_args))
                                                 except TypeError as e:
                                                     if "required positional argument" in str(e):
                                                         args = str(e).split(": '")[1].replace("'", "").replace(",", "").replace("and", "").split()

@@ -2,6 +2,7 @@ from ...guild import Invite, Channel, PermissionOverwrite
 from ...message import Message
 from ...file import File
 
+from aiohttp import ClientSession
 from typing import *
 import base64
 
@@ -9,7 +10,7 @@ import base64
 class hChannel:
     def __init__(self, instance):
         self.instance = instance
-        self.s = instance.s
+        self.s: ClientSession = instance.s
 
     # parent_id excluded because creating categories doesn't exist
     async def create_channel(self, guild_id: str, name: str, type: int = 0, bitrate: Union[int, None] = None, user_limit: Union[int, None] = None, permission_overwrites: Union[List[PermissionOverwrite], None] = None, nsfw: bool = False) -> Channel:
@@ -21,53 +22,53 @@ class hChannel:
             data['user_limit'] = user_limit
         if permission_overwrites:
             data['permission_overwrites'] = [{"id": overwrite.id, "type": overwrite.type, "allow": overwrite.allow.value, "deny": overwrite.deny.value} for overwrite in permission_overwrites]
-        r = self.s.post(f"{self.instance.base_url}guilds/{guild_id}/channels", json=data)
+        r = await self.s.post(f"{self.instance.base_url}guilds/{guild_id}/channels", json=data)
         s = HTTPStatus(r)
         if s.success:
-            return Channel(r.json(), self.instance)
+            return Channel(await r.json(), self.instance)
         else:
             raise s.exception(s.reason)
 
     async def get_channel(self, id: str) -> Channel:
         from ... import HTTPStatus
-        r = self.s.get(f"{self.instance.base_url}channels/{id}")
+        r = await self.s.get(f"{self.instance.base_url}channels/{id}")
         s = HTTPStatus(r)
         if s.success:
-            return Channel(r.json(), self.instance)
+            return Channel(await r.json(), self.instance)
         else:
             raise s.exception(s.reason)
 
     async def get_messages(self, channel_id: str, limit: int = 50) -> List[Message]:
         from ... import HTTPStatus
-        r = self.s.get(url=f"{self.instance.base_url}channels/{channel_id}/messages/?limit={limit}", json={"limit": limit})
+        r = await self.s.get(url=f"{self.instance.base_url}channels/{channel_id}/messages/?limit={limit}", json={"limit": limit})
         s = HTTPStatus(r)
         if s.success:
-            return [Message(message, self.instance) for message in r.json()]
+            return [Message(message, self.instance) for message in await r.json()]
         else:
             raise s.exception(s.reason)
 
     async def delete_channel(self, id: str) -> None:
         from ... import HTTPStatus
-        r = self.s.delete(f"{self.instance.base_url}channels/{id}")
+        r = await self.s.delete(f"{self.instance.base_url}channels/{id}")
         s = HTTPStatus(r)
         if not s.success:
             raise s.exception(s.reason)
 
     async def get_channel_pins(self, id: str) -> List[Message]:
         from ... import HTTPStatus, Message
-        r = self.s.get(f"{self.instance.base_url}channels/{id}/pins")
+        r = await self.s.get(f"{self.instance.base_url}channels/{id}/pins")
         s = HTTPStatus(r)
         if s.success:
-            return [Message(message, self.instance) for message in r.json()]
+            return [Message(message, self.instance) for message in await r.json()]
         else:
             raise s.exception(s.reason)
 
     async def get_channel_invites(self, id: str) -> List[Invite]:
         from ... import HTTPStatus
-        r = self.s.get(f"{self.instance.base_url}channels/{id}/invites")
+        r = await self.s.get(f"{self.instance.base_url}channels/{id}/invites")
         s = HTTPStatus(r)
         if s.success:
-            return [Invite(inv, self.instance, True) for inv in r.json()]
+            return [Invite(inv, self.instance, True) for inv in await r.json()]
         else:
             raise s.exception(s.reason)
 
@@ -82,35 +83,35 @@ class hChannel:
             data['temporary'] = temporary
         if unique:
             data['unique'] = unique
-        r = self.s.post(f"{self.instance.base_url}channels/{id}/invites", json=data)
+        r = await self.s.post(f"{self.instance.base_url}channels/{id}/invites", json=data)
         s = HTTPStatus(r)
         if s.success:
-            return Invite(r.json(), self.instance, True)
+            return Invite(await r.json(), self.instance, True)
         else:
             raise s.exception(s.reason)
 
     async def get_invite(self, id: str, with_counts: bool = False) -> Invite:
         from ... import HTTPStatus
-        r = self.s.get(f"{self.instance.base_url}invites/{id}", json={"with_counts": with_counts})
+        r = await self.s.get(f"{self.instance.base_url}invites/{id}", json={"with_counts": with_counts})
         s = HTTPStatus(r)
         if s.success:
-            return Invite(r.json(), self.instance)
+            return Invite(await r.json(), self.instance)
         else:
             raise s.exception(s.reason)
 
     async def delete_invite(self, id: str) -> None:
         from ... import HTTPStatus
-        r = self.s.delete(f"{self.instance.base_url}invites/{id}")
+        r = await self.s.delete(f"{self.instance.base_url}invites/{id}")
         s = HTTPStatus(r)
         if not s.success:
             raise s.exception(s.reason)
 
     async def update_channel_position(self, guild_id: str, id: str, position: int) -> List[Channel]:
         from ... import HTTPStatus
-        r = self.s.patch(f"{self.instance.base_url}guilds/{guild_id}/channels/", json=[{"id": id, "position": int(position)}])
+        r = await self.s.patch(f"{self.instance.base_url}guilds/{guild_id}/channels/", json=[{"id": id, "position": int(position)}])
         s = HTTPStatus(r)
         if s.success:
-            return [Channel(channel, self.instance) for channel in r.json()]
+            return [Channel(channel, self.instance) for channel in await r.json()]
         else:
             raise s.exception(s.reason)
 
@@ -127,10 +128,10 @@ class hChannel:
         if user_limit:
             data['user_limit'] = user_limit
         from ... import HTTPStatus
-        r = self.s.patch(url=f"{self.instance.base_url}/channels/{id}", json=data)
+        r = await self.s.patch(url=f"{self.instance.base_url}/channels/{id}", json=data)
         s = HTTPStatus(r)
         if s.success:
-            return Channel(r.json(), self.instance)
+            return Channel(await r.json(), self.instance)
         else:
             raise s.exception(s.reason)
 
@@ -141,14 +142,14 @@ class hChannel:
         overwrite.allow.update()
         overwrite.deny.update()
         data = {"id": overwrite.id, "type": overwrite.type, "allow": overwrite.allow.value, "deny": overwrite.deny.value}
-        r = self.s.put(url=f"{self.instance.base_url}channels/{channel_id}/permissions/{overwrite.id}", json=data)
+        r = await self.s.put(url=f"{self.instance.base_url}channels/{channel_id}/permissions/{overwrite.id}", json=data)
         s = HTTPStatus(r)
         if not s.success:
             raise s.exception(s.reason)
 
     async def delete_channel_overwrite(self, channel_id: str, target: str) -> None:
         from ... import HTTPStatus
-        r = self.s.delete(f"{self.instance.base_url}channels/{channel_id}/permissions/{target}")
+        r = await self.s.delete(f"{self.instance.base_url}channels/{channel_id}/permissions/{target}")
         s = HTTPStatus(r)
         if not s.success:
             raise s.exception(s.reason)
@@ -160,16 +161,16 @@ class hChannel:
             data['icon'] = f"data:image/png;base64,{base64.b64encode(await icon.get_file_data()).decode('utf-8')}"
         if name:
             data['name'] = name
-        r = self.s.patch(f"{self.instance.base_url}channels/{id}", json=data)
+        r = await self.s.patch(f"{self.instance.base_url}channels/{id}", json=data)
         s = HTTPStatus(r)
         if s.success:
-            return Channel(r.json(), self.instance)
+            return Channel(await r.json(), self.instance)
         else:
             raise s.exception(s.reason)
 
     async def leave_gc(self, id: str) -> None:
         from ... import HTTPStatus
-        r = self.s.delete(f"{self.instance.base_url}channels/{id}")
+        r = await self.s.delete(f"{self.instance.base_url}channels/{id}")
         s = HTTPStatus(r)
         if not s.success:
             raise s.exception(s.reason)

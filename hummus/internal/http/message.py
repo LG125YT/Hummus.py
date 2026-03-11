@@ -5,39 +5,37 @@ from ...file import File
 
 from ..message import prepareEmbed, Reply
 
-from requests_toolbelt import MultipartEncoder
+from aiohttp import ClientSession, FormData
 from typing import *
 
-import random
-import string
 import json
 
 
 class hMessage:
     def __init__(self, instance):
         self.instance = instance
-        self.s = instance.s
+        self.s: ClientSession = instance.s
 
     async def start_typing(self, channel_id: str) -> None:
         from ... import HTTPStatus
-        r = self.s.post(f"{self.instance.base_url}/channels/{channel_id}/typing")
+        r = await self.s.post(f"{self.instance.base_url}/channels/{channel_id}/typing")
         s = HTTPStatus(r)
         if not s.success:
             raise s.exception(s.reason)
 
     async def delete_message(self, channel_id: str, message_id: str) -> None:
         from ... import HTTPStatus
-        r = self.s.delete(url=f"{self.instance.base_url}channels/{channel_id}/messages/{message_id}")
+        r = await self.s.delete(url=f"{self.instance.base_url}channels/{channel_id}/messages/{message_id}")
         s = HTTPStatus(r)
         if not s.success:
             raise s.exception(s.reason)
 
     async def edit_message(self, channel_id: str, id: str, content: str, _reply: bool = False, _reply_content: Union[str, None] = None, _reply_author: Union[User, None] = None) -> Message:
         from ... import HTTPStatus
-        r = self.s.patch(f"{self.instance.base_url}channels/{channel_id}/messages/{id}", json={"content": content})
+        r = await self.s.patch(f"{self.instance.base_url}channels/{channel_id}/messages/{id}", json={"content": content})
         s = HTTPStatus(r)
         if s.success:
-            return Message(r.json(), self.instance, reply=_reply, reply_content=_reply_content, reply_author=_reply_author)
+            return Message(await r.json(), self.instance, reply=_reply, reply_content=_reply_content, reply_author=_reply_author)
         else:
             raise s.exception(s.reason)
 
@@ -54,15 +52,16 @@ class hMessage:
         if not type(tts) == bool:
             raise Exception("Please pass in a bool for the 'tts' parameter.")
 
-        data = {'content': message, 'tts': tts}
+        data = {'content': message, 'tts': tts}  # cannot provide blank embed list
         if file and not file.empty:
             if type(file) != File:
                 raise Exception("Please pass a \"File\" object to the \"file\" parameter.")
-            data = {'content': message, 'tts': tts}
-            fields = file.fields
-            fields['payload_json'] = (None, json.dumps(data))
-            data = MultipartEncoder(fields=fields, boundary='----WebKitFormBoundary' + ''.join(random.sample(string.ascii_letters + string.digits, 16)))
-            self.s.headers['Content-Type'] = data.content_type
+
+            f = FormData()
+            f.add_field('payload_json', json.dumps(data), content_type="application/json")
+            f.add_field('file', file.fields['file'][1], filename=file.file_json['filename'], content_type=file.file_json['Content-Type'])
+            self.s.headers.pop('Content-Type')  # let aiohttp handle this
+            data = f
         else:
             if len(embeds) > 0:
                 e = []
@@ -70,7 +69,7 @@ class hMessage:
                     e.append(await prepareEmbed(embed))
                 data['embeds'] = e
             data = json.dumps(data)
-        r = self.s.post(f"{self.instance.base_url}channels/{channel_id}/messages", data=data)
+        r = await self.s.post(f"{self.instance.base_url}channels/{channel_id}/messages", data=data)
         self.s.headers['Content-Type'] = 'application/json'
         s = HTTPStatus(r)
         if s.success:
@@ -80,7 +79,7 @@ class hMessage:
                 reply_content = _reply.content
                 reply_author = _reply.author
             reply: bool = bool(_reply)
-            return Message(r.json(), self.instance, reply=reply, reply_content=reply_content, reply_author=reply_author)
+            return Message(await r.json(), self.instance, reply=reply, reply_content=reply_content, reply_author=reply_author)
         else:
             raise s.exception(s.reason)
 
@@ -90,21 +89,21 @@ class hMessage:
         for message in messages:
             ids.append(message.id) if isinstance(message, Message) else ids.append(message)
         for id in ids:
-            r = self.s.delete(url=f"{self.instance.base_url}channels/{channel_id}/messages/{id}")  # bulk delete endpoint doesnt exist (absolute stupid)
+            r = await self.s.delete(url=f"{self.instance.base_url}channels/{channel_id}/messages/{id}")  # bulk delete endpoint doesnt exist (absolute stupid)
             s = HTTPStatus(r)
             # if not s.success:
             # raise s.exception(s.reason)
 
     async def pin_message(self, channel_id: str, id: str) -> None:
         from ... import HTTPStatus
-        r = self.s.put(f"{self.instance.base_url}channels/{channel_id}/pins/{id}")
+        r = await self.s.put(f"{self.instance.base_url}channels/{channel_id}/pins/{id}")
         s = HTTPStatus(r)
         if not s.success:
             raise s.exception(s.reason)
 
     async def unpin_message(self, channel_id: str, id: str) -> None:
         from ... import HTTPStatus
-        r = self.s.delete(f"{self.instance.base_url}channels/{channel_id}/pins/{id}")
+        r = await self.s.delete(f"{self.instance.base_url}channels/{channel_id}/pins/{id}")
         s = HTTPStatus(r)
         if not s.success:
             raise s.exception(s.reason)

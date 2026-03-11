@@ -84,7 +84,7 @@ class InvitePartialGuild:
         return await self.instance.http.update_guild_member(self.id, id, nick, roles)
 
     async def update(self, name: Union[str, None] = None, icon: Union[File, None] = None) -> 'PartialGuild':
-        return await self.instance.http.update_guild(self.id, name, icon)
+        return await self.instance.http.modify_guild(self.id, name, icon)
 
     async def nickSelf(self, nick: str = ""):
         return await self.instance.http.update_client_nick(self.id, nick)

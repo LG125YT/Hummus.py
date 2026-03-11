@@ -1,26 +1,28 @@
 from ...user import User, Profile
 
+from aiohttp import ClientSession
+
 
 class hUser:
     def __init__(self, instance):
         self.instance = instance
-        self.s = instance.s
+        self.s: ClientSession = instance.s
 
     async def get_user(self, id: str) -> User:
         from ... import HTTPStatus
-        r = self.s.get(url=f"{self.instance.base_url}users/{id}/")
+        r = await self.s.get(url=f"{self.instance.base_url}users/{id}/")
         s = HTTPStatus(r)
         if s.success:
-            return User(r.json(), self.instance)
+            return User(await r.json(), self.instance)
         else:
             raise s.exception(s.reason)
 
     async def get_user_profile(self, id: str) -> Profile:
         from ... import HTTPStatus
-        r = self.s.get(url=f"{self.instance.base_url}users/{id}/profile")
+        r = await self.s.get(url=f"{self.instance.base_url}users/{id}/profile")
         s = HTTPStatus(r)
         if s.success:
-            return Profile(r.json(), self.instance)
+            return Profile(await r.json(), self.instance)
         else:
             raise s.exception(s.reason)
 

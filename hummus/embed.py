@@ -2,17 +2,18 @@ from PIL.Image import open as openImage
 from io import BytesIO
 import fake_useragent
 from typing import *
-import requests
+import aiohttp
 
 
-def getDimensions(image_url):
-    response = requests.get(image_url, headers={"User-Agent": fake_useragent.UserAgent(browsers=['chrome', 'firefox', 'opera', 'safari', 'edge', 'internet explorer']).random})
-    if response.status_code == 200:
-        img = openImage(BytesIO(response.content))
-        width, height = img.size
-        return width, height, True
-    else:
-        raise Exception(f"Failed to retrieve image from URL. Status code: {response.status_code}")
+async def getDimensions(image_url):
+    async with aiohttp.ClientSession() as s:
+        response = await s.get(image_url, headers={"User-Agent": fake_useragent.UserAgent(browsers=['chrome', 'firefox', 'opera', 'safari', 'edge', 'internet explorer']).random})
+        if response.status == 200:
+            img = openImage(BytesIO(await response.content.read()))
+            width, height = img.size
+            return width, height, True
+        else:
+            raise Exception(f"Failed to retrieve image from URL. Status code: {response.status}")
 
 
 class Field:
@@ -43,7 +44,7 @@ class Thumbnail:
         self.available = False
 
     async def getDimensions(self):
-        self.width, self.height, self.available = getDimensions(self.url)
+        self.width, self.height, self.available = await getDimensions(self.url)
 
 
 class Image:
@@ -54,7 +55,7 @@ class Image:
         self.available = False
 
     async def getDimensions(self):
-        self.width, self.height, self.available = getDimensions(self.url)
+        self.width, self.height, self.available = await getDimensions(self.url)
 
 
 class Provider:
@@ -71,7 +72,7 @@ class Video:
         self.available = False
 
     async def getDimensions(self):
-        self.width, self.height, self.available = getDimensions(self.url)
+        self.width, self.height, self.available = await getDimensions(self.url)
 
 
 class Embed:

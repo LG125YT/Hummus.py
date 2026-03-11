@@ -3,69 +3,69 @@ from ...role import Role, Permissions
 from ...user import Member
 from ...file import File
 
+from aiohttp import ClientSession
 from typing import *
-
 import base64
 
 
 class hGuild:
     def __init__(self, instance):
         self.instance = instance
-        self.s = instance.s
+        self.s: ClientSession = instance.s
 
     async def get_guild(self, id: str) -> PartialGuild:
         from ... import HTTPStatus
-        r = self.s.get(url=f"{self.instance.base_url}guilds/{id}")
+        r = await self.s.get(url=f"{self.instance.base_url}guilds/{id}")
         s = HTTPStatus(r)
         if s.success:
-            return PartialGuild(r.json(), self.instance)
+            return PartialGuild(await r.json(), self.instance)
         else:
             raise s.exception(s.reason)
 
     async def leave_guild(self, guild_id: str) -> None:
         from ... import HTTPStatus
-        r = self.s.delete(f"{self.instance.base_url}users/@me/guilds/{guild_id}")
+        r = await self.s.delete(f"{self.instance.base_url}users/@me/guilds/{guild_id}")
         s = HTTPStatus(r)
         if not s.success:
             raise s.exception(s.reason)
 
     async def delete_guild(self, guild_id: str) -> None:
         from ... import HTTPStatus
-        r = self.s.post(f"{self.instance.base_url}guilds/{guild_id}/delete")  # clowning on the discord docs rn cause theyre WRONG (they said it was DELETE /guilds/{guild_id})
+        r = await self.s.post(f"{self.instance.base_url}guilds/{guild_id}/delete")  # clowning on the discord docs rn cause theyre WRONG (they said it was DELETE /guilds/{guild_id})
         s = HTTPStatus(r)
         if not s.success:
             raise s.exception(s.reason)
 
-    async def kick(self, guild_id: str, user_id: str, reason: Union[str, None] = None) -> None:
+    async def kick(self, guild_id: str, user_id: str, reason: str = "") -> None:
         from ... import HTTPStatus
-        self.s.headers['X-Audit-Log-Reason'] = reason
-        r = self.s.delete(url=f"{self.instance.base_url}guilds/{guild_id}/members/{user_id}")
-        self.s.headers['X-Audit-Log-Reason'] = None
+        self.s.headers.add('X-Audit-Log-Reason', reason)
+        r = await self.s.delete(url=f"{self.instance.base_url}guilds/{guild_id}/members/{user_id}")
+        self.s.headers.pop('X-Audit-Log-Reason')
         s = HTTPStatus(r)
         if not s.success:
             raise s.exception(s.reason)
 
     async def get_bans(self, guild_id: str) -> List[Ban]:
         from ... import HTTPStatus
-        r = self.s.get(url=f"{self.instance.base_url}/guilds/{guild_id}/bans")
+        r = await self.s.get(url=f"{self.instance.base_url}/guilds/{guild_id}/bans")
         s = HTTPStatus(r)
         if s.success:
-            return [Ban(ban, guild_id, self.instance) for ban in r.json()]
+            return [Ban(ban, guild_id, self.instance) for ban in await r.json()]
         else:
             raise s.exception(s.reason)
 
-    async def ban(self, guild_id: str, user_id: str, reason: Union[str, None] = None, delete_message_days: int = 0) -> None:
+    async def ban(self, guild_id: str, user_id: str, reason: str = "", delete_message_days: int = 0) -> None:
         from ... import HTTPStatus
-        self.s.headers['X-Audit-Log-Reason'] = reason
-        r = self.s.put(url=f"{self.instance.base_url}guilds/{guild_id}/bans/{user_id}", json={'delete-message-days': int(delete_message_days), 'reason': reason})
-        self.s.headers['X-Audit-Log-Reason'] = None
+        self.s.headers.add('X-Audit-Log-Reason', reason)
+        r = await self.s.put(url=f"{self.instance.base_url}guilds/{guild_id}/bans/{user_id}", json={'delete-message-days': int(delete_message_days), 'reason': reason})
+        self.s.headers.pop('X-Audit-Log-Reason')
         s = HTTPStatus(r)
         if not s.success:
             raise s.exception(s.reason)
 
     async def unban(self, guild_id: str, user_id: str) -> None:
         from ... import HTTPStatus
-        r = self.s.delete(url=f"{self.instance.base_url}guilds/{guild_id}/bans/{user_id}")
+        r = await self.s.delete(url=f"{self.instance.base_url}guilds/{guild_id}/bans/{user_id}")
         s = HTTPStatus(r)
         if not s.success:
             raise s.exception(s.reason)
@@ -80,7 +80,7 @@ class hGuild:
                 data['roles'].remove(guild_id)
         if nick:
             data['nick'] = nick
-        r = self.s.patch(url=f"{self.instance.base_url}guilds/{guild_id}/members/{user_id}", json=data)
+        r = await self.s.patch(url=f"{self.instance.base_url}guilds/{guild_id}/members/{user_id}", json=data)
         s = HTTPStatus(r)
         if not s.success:
             raise s.exception(s.reason)
@@ -93,10 +93,10 @@ class hGuild:
             data['region'] = region
         data['name'] = name
         from ... import HTTPStatus
-        r = self.s.post(url=f"{self.instance.base_url}guilds", json=data)
+        r = await self.s.post(url=f"{self.instance.base_url}guilds", json=data)
         s = HTTPStatus(r)
         if s.success:
-            return PartialGuild(r.json(), self.instance)
+            return PartialGuild(await r.json(), self.instance)
         else:
             raise s.exception(s.reason)
 
@@ -104,26 +104,26 @@ class hGuild:
         from ... import HTTPStatus
         if not nick:  # user attempts to pass in None to reset nick
             nick = ""
-        r = self.s.patch(url=f"{self.instance.base_url}guilds/{guild_id}/members/@me/nick", json={"nick": nick})
+        r = await self.s.patch(url=f"{self.instance.base_url}guilds/{guild_id}/members/@me/nick", json={"nick": nick})
         s = HTTPStatus(r)
         if s.success:
-            return Member(r.json(), guild_id, self.instance)
+            return Member(await r.json(), guild_id, self.instance)
         else:
             raise s.exception(s.reason)
 
     async def delete_role(self, guild_id: str, id: str) -> None:
         from ... import HTTPStatus
-        r = self.s.delete(url=f"{self.instance.base_url}guilds/{guild_id}/roles/{id}")
+        r = await self.s.delete(url=f"{self.instance.base_url}guilds/{guild_id}/roles/{id}")
         s = HTTPStatus(r)
         if not s.success:
             raise s.exception(s.reason)
 
     async def create_role(self, guild_id: str) -> Role:
         from ... import HTTPStatus
-        r = self.s.post(url=f"{self.instance.base_url}guilds/{guild_id}/roles")  # when the json doesnt fucking work so people have to rely on Role.edit() lol! (fuck you ziad)
+        r = await self.s.post(url=f"{self.instance.base_url}guilds/{guild_id}/roles")  # when the json doesnt fucking work so people have to rely on Role.edit() lol! (fuck you ziad)
         s = HTTPStatus(r)
         if s.success:
-            return Role(r.json(), guild_id, self.instance)
+            return Role(await r.json(), guild_id, self.instance)
         else:
             raise s.exception(s.reason)
 
@@ -143,19 +143,19 @@ class hGuild:
         if mentionable != None:
             data['mentionable'] = mentionable
         from ... import HTTPStatus
-        r = self.s.patch(url=f"{self.instance.base_url}guilds/{guild_id}/roles/{id}", json=data)
+        r = await self.s.patch(url=f"{self.instance.base_url}guilds/{guild_id}/roles/{id}", json=data)
         s = HTTPStatus(r)
         if s.success:
-            return Role(r.json(), guild_id, self.instance)
+            return Role(await r.json(), guild_id, self.instance)
         else:
             raise s.exception(s.reason)
 
     async def modify_role_position(self, guild_id: str, id: str, position: int) -> List[Role]:
         from ... import HTTPStatus
-        r = self.s.patch(url=f"{self.instance.base_url}guilds/{guild_id}/roles", json=[{"id": id, "position": int(position)}])
+        r = await self.s.patch(url=f"{self.instance.base_url}guilds/{guild_id}/roles", json=[{"id": id, "position": int(position)}])
         s = HTTPStatus(r)
         if s.success:
-            return [Role(role, guild_id, self.instance) for role in r.json()]
+            return [Role(role, guild_id, self.instance) for role in await r.json()]
         else:
             raise s.exception(s.reason)
 
@@ -167,56 +167,56 @@ class hGuild:
             if not icon.empty:
                 data["icon"] = f"data:image/png;base64,{base64.b64encode(await icon.get_file_data()).decode('utf-8')}"
         else:
-            e = self.s.get(f"{self.instance.base_url}guilds/{guild_id}").json()
-            icondata = self.s.get(f"{self.instance.cdn}icons/{e['id']}/{e['icon']}.png").content
+            e = await (await self.s.get(f"{self.instance.base_url}guilds/{guild_id}")).json()
+            icondata = await (await self.s.get(f"{self.instance.cdn}icons/{e['id']}/{e['icon']}.png")).content.read()
             data["icon"] = f"data:image/png;base64,{base64.b64encode(icondata).decode('utf-8')}"
         from ... import HTTPStatus
-        r = self.s.patch(url=f"{self.instance.base_url}guilds/{guild_id}", json=data)
+        r = await self.s.patch(url=f"{self.instance.base_url}guilds/{guild_id}", json=data)
         s = HTTPStatus(r)
         if s.success:
-            return PartialGuild(r.json(), self.instance)
+            return PartialGuild(await r.json(), self.instance)
         else:
             raise s.exception(s.reason)
 
     async def get_emojis(self, guild_id: str) -> List[Emoji]:
         from ... import HTTPStatus
-        r = self.s.get(f"{self.instance.base_url}guilds/{guild_id}/emojis")
+        r = await self.s.get(f"{self.instance.base_url}guilds/{guild_id}/emojis")
         s = HTTPStatus(r)
         if s.success:
-            return [Emoji(emoji, self.instance) for emoji in r.json()]
+            return [Emoji(emoji, self.instance) for emoji in await r.json()]
         else:
             raise s.exception(s.reason)
 
     async def get_emoji(self, guild_id: str, id: str) -> Emoji:
         from ... import HTTPStatus
-        r = self.s.get(f"{self.instance.base_url}guilds/{guild_id}/emojis/{id}")
+        r = await self.s.get(f"{self.instance.base_url}guilds/{guild_id}/emojis/{id}")
         s = HTTPStatus(r)
         if s.success:
-            return Emoji(r.json(), self.instance)
+            return Emoji(await r.json(), self.instance)
         else:
             raise s.exception(s.reason)
 
     async def create_emoji(self, guild_id: str, name: str, image: File) -> Emoji:
         from ... import HTTPStatus
-        r = self.s.post(f"{self.instance.base_url}guilds/{guild_id}/emojis", json={"name": name, "image": f"data:image/png;base64,{base64.b64encode(await image.get_file_data()).decode('utf-8')}"})
+        r = await self.s.post(f"{self.instance.base_url}guilds/{guild_id}/emojis", json={"name": name, "image": f"data:image/png;base64,{base64.b64encode(await image.get_file_data()).decode('utf-8')}"})
         s = HTTPStatus(r)
         if s.success:
-            return Emoji(r.json(), self.instance)
+            return Emoji(await r.json(), self.instance)
         else:
             raise s.exception(s.reason)
 
     async def edit_emoji(self, guild_id: str, id: str, name: str) -> Emoji:
         from ... import HTTPStatus
-        r = self.s.patch(f"{self.instance.base_url}guilds/{guild_id}/emojis/{id}", json={"name": name})
+        r = await self.s.patch(f"{self.instance.base_url}guilds/{guild_id}/emojis/{id}", json={"name": name})
         s = HTTPStatus(r)
         if s.success:
-            return Emoji(r.json(), self.instance)
+            return Emoji(await r.json(), self.instance)
         else:
             raise s.exception(s.reason)
 
     async def delete_emoji(self, guild_id: str, id: str) -> None:
         from ... import HTTPStatus
-        r = self.s.delete(url=f"{self.instance.base_url}guilds/{guild_id}/emojis/{id}")
+        r = await self.s.delete(url=f"{self.instance.base_url}guilds/{guild_id}/emojis/{id}")
         s = HTTPStatus(r)
         if not s.success:
             raise s.exception(s.reason)
